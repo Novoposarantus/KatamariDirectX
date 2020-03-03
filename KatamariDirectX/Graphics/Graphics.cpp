@@ -278,7 +278,7 @@ bool Graphics::InitializeScene()
 		COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
 
 		//Initialize model(s)
-		if (!model.Initialize(this->device.Get(), this->deviceContext.Get(), this->dotaTexture.Get(), this->cb_vs_VertexShader))
+		if (!model.Initialize("Data\\Objects\\Skull\\12140_Skull_v3_L2.obj",this->device.Get(), this->deviceContext.Get(), this->dotaTexture.Get(), this->cb_vs_VertexShader))
 			return false;
 
 		//Initialize model(s)
