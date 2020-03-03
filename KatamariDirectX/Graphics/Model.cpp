@@ -44,7 +44,6 @@ void Model::Draw(const XMMATRIX& viewProjectionMatrix)
 	this->deviceContext->VSSetConstantBuffers(0, 1, this->cb_vs_vertexshader->GetAddressOf());
 
 	this->deviceContext->PSSetShaderResources(0, 1, &this->texture); //Set Texture
-	this->deviceContext->IASetIndexBuffer(this->indexBuffer.Get(), DXGI_FORMAT::DXGI_FORMAT_R32_UINT, 0);
 
 	for (int i = 0; i < meshes.size(); i++)
 	{
