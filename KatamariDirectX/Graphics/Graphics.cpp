@@ -56,7 +56,7 @@ void Graphics::RenderFrame()
 	spriteBatch->Begin();
 	spriteFont->DrawString(
 		spriteBatch.get(),
-		StringConverter::StringToWide(fpsStirng).c_str(),
+		StringHelper::StringToWide(fpsStirng).c_str(),
 		DirectX::XMFLOAT2(0, 0),
 		DirectX::Colors::White,
 		0.0f,
