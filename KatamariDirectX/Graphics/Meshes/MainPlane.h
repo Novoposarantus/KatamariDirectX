@@ -12,11 +12,11 @@ public:
 	bool Initialize(
 		ID3D11Device* device,
 		ID3D11DeviceContext* deviceContext,
-		ID3D11ShaderResourceView* texture,
 		ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader
 	);
 	void SetTexture(ID3D11ShaderResourceView* texture);
 	void Draw(const XMMATRIX& viewProjectionMatrix);
+
 private:
 
 	ID3D11Device* device = nullptr;

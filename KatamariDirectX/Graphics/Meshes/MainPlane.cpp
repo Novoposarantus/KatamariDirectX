@@ -1,11 +1,15 @@
 #include "MainPlane.h"
 #include "..\\..\\Macros.h"
+#include <WICTextureLoader.h>
 
-bool MainPlane::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView* texture, ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader)
+bool MainPlane::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader)
 {
+	
+	//Load Texture
+	auto hr = DirectX::CreateWICTextureFromFile(device, L"Data\\Textures\\gradient.png", nullptr, &texture);
+	COM_ERROR_IF_FAILED(hr, "Failed to create wic texture from file.");
 	this->device = device;
 	this->deviceContext = deviceContext;
-	this->texture = texture;
 	this->cb_vs_vertexshader = &cb_vs_vertexshader;
 
 	try

@@ -262,27 +262,20 @@ bool Graphics::InitializeShaders()
 bool Graphics::InitializeScene()
 {
 	try {
-	
-		//Load Texture
-		auto hr = DirectX::CreateWICTextureFromFile(this->device.Get(), L"Data\\Textures\\dota2.png", nullptr, dotaTexture.GetAddressOf());
-		COM_ERROR_IF_FAILED(hr, "Failed to create wic texture from file.");
-		//Load Texture
-		hr = DirectX::CreateWICTextureFromFile(this->device.Get(), L"Data\\Textures\\gradient.png", nullptr, gradientTexture.GetAddressOf());
-		COM_ERROR_IF_FAILED(hr, "Failed to create wic texture from file.");
 
 		//Initialize Constant Buffer
-		hr = cb_vs_VertexShader.Initialize(this->device.Get(), this->deviceContext.Get());
+		auto hr = cb_vs_VertexShader.Initialize(this->device.Get(), this->deviceContext.Get());
 		COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
 
 		hr = cb_ps_PixelShader.Initialize(this->device.Get(), this->deviceContext.Get());
 		COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
 
 		//Initialize model(s)
-		if (!gameObject.Initialize("Data\\Objects\\Samples\\person_embeddedindexed.blend",this->device.Get(), this->deviceContext.Get(), this->cb_vs_VertexShader))
+		if (!gameObject.Initialize("Data\\Objects\\Samples\\orange_embeddedtexture.fbx",this->device.Get(), this->deviceContext.Get(), this->cb_vs_VertexShader))
 			return false;
 
 		//Initialize model(s)
-		if (!mainPlane.Initialize(this->device.Get(), this->deviceContext.Get(), this->gradientTexture.Get(), this->cb_vs_VertexShader))
+		if (!mainPlane.Initialize(this->device.Get(), this->deviceContext.Get(), this->cb_vs_VertexShader))
 			return false;
 
 		camera.SetPosition(0.0f, 0.0f, -2.0f);
