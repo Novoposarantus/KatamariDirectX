@@ -4,12 +4,10 @@ bool Model::Initialize(
 	const std::string& filePath,
 	ID3D11Device* device, 
 	ID3D11DeviceContext* deviceContext, 
-	ID3D11ShaderResourceView* texture, 
 	ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader)
 {
 	this->device = device;
 	this->deviceContext = deviceContext;
-	this->texture = texture;
 	this->cb_vs_vertexshader = &cb_vs_vertexshader;
 
 	try
@@ -27,10 +25,6 @@ bool Model::Initialize(
 	return true;
 }
 
-void Model::SetTexture(ID3D11ShaderResourceView* texture)
-{
-	this->texture = texture;
-}
 
 void Model::Draw(const XMMATRIX& worldMatrix, const XMMATRIX& viewProjectionMatrix)
 {
@@ -40,7 +34,7 @@ void Model::Draw(const XMMATRIX& worldMatrix, const XMMATRIX& viewProjectionMatr
 	this->cb_vs_vertexshader->ApplyChanges();
 	this->deviceContext->VSSetConstantBuffers(0, 1, this->cb_vs_vertexshader->GetAddressOf());
 
-	this->deviceContext->PSSetShaderResources(0, 1, &this->texture); //Set Texture
+	//this->deviceContext->PSSetShaderResources(0, 1, &this->texture); //Set Texture
 
 	for (int i = 0; i < meshes.size(); i++)
 	{
@@ -111,5 +105,40 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 			indices.push_back(face.mIndices[j]);
 	}
 
-	return Mesh(this->device, this->deviceContext, vertices, indices);
+	std::vector<Texture> textures;
+	aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+	std::vector<Texture> diffuseTextures = LoadMaterialTextures(material, aiTextureType::aiTextureType_DIFFUSE, scene);
+	textures.insert(textures.end(), diffuseTextures.begin(), diffuseTextures.end());
+
+	return Mesh(this->device, this->deviceContext, vertices, indices, textures);
+}
+
+std::vector<Texture> Model::LoadMaterialTextures(aiMaterial* pMaterial, aiTextureType textureType, const aiScene* pScene)
+{
+	std::vector<Texture> materialTextures;
+	TextureStorageType storetype = TextureStorageType::Invalid;
+	unsigned int textureCount = pMaterial->GetTextureCount(textureType);
+
+	if (textureCount == 0) //If there are no textures
+	{
+		storetype = TextureStorageType::None;
+		aiColor3D aiColor(0.0f, 0.0f, 0.0f);
+		switch (textureType)
+		{
+		case aiTextureType_DIFFUSE:
+			pMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, aiColor);
+			if (aiColor.IsBlack()) //If color = black, just use grey
+			{
+				materialTextures.push_back(Texture(this->device, Colors::UnloadedTextureColor, textureType));
+				return materialTextures;
+			}
+			materialTextures.push_back(Texture(this->device, Color(aiColor.r * 255, aiColor.g * 255, aiColor.b * 255), textureType));
+			return materialTextures;
+		}
+	}
+	else
+	{
+		materialTextures.push_back(Texture(this->device, Colors::UnhandledTextureColor, aiTextureType::aiTextureType_DIFFUSE));
+		return materialTextures;
+	}
 }
