@@ -188,25 +188,32 @@ std::vector<Texture> Model::LoadMaterialTextures(aiMaterial* pMaterial, aiTextur
 			aiString path;
 			pMaterial->GetTexture(textureType, i, &path);
 			TextureStorageType storeType = DetermineTextureStorageType(pScene, pMaterial, i, textureType);
-			switch (storeType)
+			if (storeType == TextureStorageType::EmbeddedIndexCompressed)
 			{
-			case TextureStorageType::Invalid:
+				int index = GetTextureIndex(&path);
+				Texture embeddedIndexedTexture(
+					this->device,
+					reinterpret_cast<uint8_t*>(pScene->mTextures[index]->pcData),
+					pScene->mTextures[index]->mWidth,
+					textureType);
+				materialTextures.push_back(embeddedIndexedTexture);
 				break;
-			case TextureStorageType::None:
-				break;
-			case TextureStorageType::EmbeddedIndexCompressed:
-				break;
-			case TextureStorageType::EmbeddedIndexNonCompressed:
-				break;
-			case TextureStorageType::EmbeddedCompressed:
-				break;
-			case TextureStorageType::EmbeddedNonCompressed:
-				break;
-			case TextureStorageType::Disk:
+			}
+			else if (storeType == TextureStorageType::EmbeddedCompressed)
+			{
+				const aiTexture* pTexture = pScene->GetEmbeddedTexture(path.C_Str());
+				Texture embeddedTexture(
+					this->device,
+					reinterpret_cast<uint8_t*>(pTexture->pcData),
+					pTexture->mWidth,
+					textureType);
+				materialTextures.push_back(embeddedTexture);
+			} 
+			else if (storeType == TextureStorageType::Disk)
+			{
 				std::string filename = this->directory + '\\' + path.C_Str();
-				Texture discTexture(this->device, filename, textureType);
-				materialTextures.push_back(discTexture);
-				break;
+				Texture diskTexture(this->device, filename, textureType);
+				materialTextures.push_back(diskTexture);
 			}
 		}
 	}
@@ -216,4 +223,10 @@ std::vector<Texture> Model::LoadMaterialTextures(aiMaterial* pMaterial, aiTextur
 		materialTextures.push_back(Texture(this->device, Colors::UnhandledTextureColor, aiTextureType::aiTextureType_DIFFUSE));
 	}
 	return materialTextures;
+}
+
+int Model::GetTextureIndex(aiString* pStr)
+{
+	assert(pStr->length >= 2);
+	return atoi(&pStr->C_Str()[1]);
 }
