@@ -7,7 +7,7 @@
 #include "Camera.h"
 #include "..\\Timer.h"
 #include "./Meshes/MainPlane.h"
-#include "Model.h"
+#include "GameObject.h"
 
 class Graphics
 {
@@ -15,7 +15,7 @@ public:
 	bool Initialize(HWND hwnd, int width, int height);
 	void RenderFrame();
 	Camera camera;
-	Model model;
+	GameObject gameObject;
 	MainPlane mainPlane;
 
 private:

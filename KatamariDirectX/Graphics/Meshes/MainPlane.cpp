@@ -58,5 +58,5 @@ void MainPlane::Draw(const XMMATRIX& viewProjectionMatrix)
 	this->deviceContext->IASetIndexBuffer(this->indexBuffer.Get(), DXGI_FORMAT::DXGI_FORMAT_R32_UINT, 0);
 	UINT offset = 0;
 	this->deviceContext->IASetVertexBuffers(0, 1, this->vertexBuffer.GetAddressOf(), this->vertexBuffer.StridePtr(), &offset);
-	this->deviceContext->DrawIndexed(this->indexBuffer.BufferSize(), 0, 0); //Draw
+	this->deviceContext->DrawIndexed(this->indexBuffer.IndexCount(), 0, 0); //Draw
 }

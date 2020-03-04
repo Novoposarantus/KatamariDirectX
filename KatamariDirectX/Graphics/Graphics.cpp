@@ -40,7 +40,7 @@ void Graphics::RenderFrame()
 
 	UINT offset = 0;
 
-	this->model.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
+	this->gameObject.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
 	this->mainPlane.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
 
 	//Draw Text
@@ -278,7 +278,7 @@ bool Graphics::InitializeScene()
 		COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
 
 		//Initialize model(s)
-		if (!model.Initialize("Data\\Objects\\Skull\\12140_Skull_v3_L2.obj",this->device.Get(), this->deviceContext.Get(), this->dotaTexture.Get(), this->cb_vs_VertexShader))
+		if (!gameObject.Initialize("Data\\Objects\\Skull\\12140_Skull_v3_L2.obj",this->device.Get(), this->deviceContext.Get(), this->dotaTexture.Get(), this->cb_vs_VertexShader))
 			return false;
 
 		//Initialize model(s)
