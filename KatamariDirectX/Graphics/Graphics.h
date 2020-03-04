@@ -15,7 +15,8 @@ public:
 	bool Initialize(HWND hwnd, int width, int height);
 	void RenderFrame();
 	Camera camera;
-	GameObject gameObject;
+	std::vector<GameObject> gameObjects;
+	GameObject mainObject;
 	MainPlane mainPlane;
 
 private:

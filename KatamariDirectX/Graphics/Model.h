@@ -12,7 +12,7 @@ public:
 		ID3D11DeviceContext* deviceContext, 
 		ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader
 	);
-	void Draw(const XMMATRIX& worldMatrix, const XMMATRIX& viewProjectionMatrix);
+	void Draw(const DirectX::SimpleMath::Matrix& worldMatrix, const DirectX::SimpleMath::Matrix& viewProjectionMatrix);
 private:
 	std::vector<Mesh> meshes;
 	bool LoadModel(const std::string& filePath);

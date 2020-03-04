@@ -1,5 +1,6 @@
 #pragma once
 #include <d3d11.h>
+#include <SimpleMath.h>
 #include <wrl/client.h>
 #include "Color.h"
 #include <string>

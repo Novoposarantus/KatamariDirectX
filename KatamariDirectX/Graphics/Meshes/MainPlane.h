@@ -4,6 +4,7 @@
 #include "..\\IndexBuffer.h"
 #include "..\\ConstantBuffer.h"
 
+
 using namespace DirectX;
 
 class MainPlane
@@ -15,7 +16,7 @@ public:
 		ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader
 	);
 	void SetTexture(ID3D11ShaderResourceView* texture);
-	void Draw(const XMMATRIX& viewProjectionMatrix);
+	void Draw(const DirectX::SimpleMath::Matrix& viewProjectionMatrix);
 
 private:
 
@@ -27,5 +28,5 @@ private:
 	VertexBuffer<Vertex> vertexBuffer;
 	IndexBuffer indexBuffer;
 
-	XMMATRIX worldMatrix = XMMatrixIdentity();
+	DirectX::SimpleMath::Matrix worldMatrix = XMMatrixIdentity();
 };

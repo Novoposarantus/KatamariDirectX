@@ -1,6 +1,7 @@
 #pragma once
 #include "..\\ErrorLogger.h"
 #include <d3d11.h>
+#include <SimpleMath.h>
 #include <wrl/client.h>
 #include <d3dcompiler.h>
 

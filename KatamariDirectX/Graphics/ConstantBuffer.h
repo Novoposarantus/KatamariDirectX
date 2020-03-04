@@ -1,6 +1,7 @@
 #ifndef ConstantBuffer_h__
 #define ConstantBuffer_h__
 #include <d3d11.h>
+#include <SimpleMath.h>
 #include "ConstantBufferTypes.h"
 #include <wrl/client.h>
 #include "..\\ErrorLogger.h"

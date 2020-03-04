@@ -1,5 +1,7 @@
 #pragma once
-#include <DirectXMath.h>
+#include <d3d11.h>
+#include <SimpleMath.h>
+
 
 struct Vertex
 {
@@ -9,6 +11,6 @@ struct Vertex
 		pos(x, y, z),
 		texCoord(u, v)
 	{}
-	DirectX::XMFLOAT3 pos;
-	DirectX::XMFLOAT2 texCoord;
+	DirectX::SimpleMath::Vector3 pos;
+	DirectX::SimpleMath::Vector2 texCoord;
 };

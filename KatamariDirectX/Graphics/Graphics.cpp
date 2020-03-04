@@ -40,8 +40,9 @@ void Graphics::RenderFrame()
 
 	UINT offset = 0;
 
-	this->gameObject.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
+	this->mainObject.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
 	this->mainPlane.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
+
 
 	//Draw Text
 	static int fpsCounter = 0;
@@ -263,6 +264,7 @@ bool Graphics::InitializeScene()
 {
 	try {
 
+		camera.SetParent(&this->mainObject);
 		//Initialize Constant Buffer
 		auto hr = cb_vs_VertexShader.Initialize(this->device.Get(), this->deviceContext.Get());
 		COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
@@ -271,14 +273,14 @@ bool Graphics::InitializeScene()
 		COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
 
 		//Initialize model(s)
-		if (!gameObject.Initialize("Data\\Objects\\Samples\\orange_embeddedtexture.fbx",this->device.Get(), this->deviceContext.Get(), this->cb_vs_VertexShader))
+		if (!mainObject.Initialize("Data\\Objects\\Samples\\orange_embeddedtexture.fbx",this->device.Get(), this->deviceContext.Get(), this->cb_vs_VertexShader))
 			return false;
 
 		//Initialize model(s)
 		if (!mainPlane.Initialize(this->device.Get(), this->deviceContext.Get(), this->cb_vs_VertexShader))
 			return false;
 
-		camera.SetPosition(0.0f, 0.0f, -2.0f);
+		//mainObject.SetPosition(5, 5, 0.3);
 		camera.SetProjectionValues(90.0f, static_cast<float>(windowWidth) / static_cast<float>(windowHeight), 0.1f, 1000.0f);
 	}
 	catch (COMException & exception)
