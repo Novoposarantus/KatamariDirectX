@@ -17,6 +17,7 @@ public:
 	Camera camera;
 	std::vector<GameObject> gameObjects;
 	GameObject mainObject;
+	float mainObjectSize = 1;
 	MainPlane mainPlane;
 
 private:

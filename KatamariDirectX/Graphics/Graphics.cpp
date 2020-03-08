@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <DirectXMath.h>
 #include <DirectXCollision.h>
+#include <sstream>
+#include <iomanip>
 
 bool Graphics::Initialize(HWND hwnd, int width, int height)
 {
@@ -47,9 +49,10 @@ void Graphics::RenderFrame()
 	this->mainPlane.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
 	for (int i = 0; i < this->gameObjects.size(); i++)
 	{
-		 if (!this->gameObjects[i].IsAttachedToMain() && this->gameObjects[i].CheckColision(this->mainObject))
+		 if (!this->gameObjects[i].IsAttachedToMain() && this->gameObjects[i].CheckColision(this->mainObject, this->mainObjectSize))
 		{
 			this->gameObjects[i].AttachToMain(&this->mainObject);
+			this->mainObjectSize += this->gameObjects[i].size / 2;
 		}
 		this->gameObjects[i].Draw(camera.GetViewMatrix()* camera.GetProjectionMatrix());
 	}
@@ -83,6 +86,20 @@ void Graphics::RenderFrame()
 		DirectX::XMFLOAT2(0, 0),
 		DirectX::XMFLOAT2(1.0f, 1.0f)
 	);
+
+	//std::stringstream size_ss;
+	//size_ss << std::fixed << std::setprecision(2) << this->mainObjectSize;
+
+	//auto size_string = "Size: " + size_ss.str();
+	//spriteFont->DrawString(
+	//	spriteBatch.get(),
+	//	size_string.c_str(),
+	//	DirectX::XMFLOAT2(0, 50),
+	//	DirectX::Colors::White,
+	//	0.0f,
+	//	DirectX::XMFLOAT2(0, 0),
+	//	DirectX::XMFLOAT2(1.0f, 1.0f)
+	//);
 	//auto pos = mainObject.GetPosition();
 	//auto vec_pos_string = "Position main X: " + std::to_string(pos.x) + ", Y: " + std::to_string(pos.y) + ", Z: " + std::to_string(pos.z);
 	//spriteFont->DrawString(
@@ -343,7 +360,9 @@ bool Graphics::InitializeScene()
 		//Initialize model(s)
 		if (!mainObject.Initialize("Data\\Objects\\Samples\\orange_embeddedtexture.fbx",this->device.Get(), this->deviceContext.Get(), this->cb_vs_VertexShader))
 			return false;
-		//mainObject.SetScale(0.8f, 0.8f, 0.8f);
+		float mainStartSize = 0.5f;
+		mainObject.SetScale(1, 1, 1, mainStartSize);
+		this->mainObjectSize = mainStartSize;
 
 		for (int i = 0; i < 10; ++i)
 		{
@@ -356,9 +375,9 @@ bool Graphics::InitializeScene()
 			);
 			float x = rand() % 200 - 100;
 			float z = rand() % 200 - 100; 
-			float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.3f - 0.2f)));
+			float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (0.7f - 0.2f)));
 			gameObject.SetPosition(x, 0, z);
-			gameObject.SetScale(r, r, r);
+			gameObject.SetScale(1, 1, 1, r);
 			gameObjects.push_back(gameObject);
 		}
 
@@ -374,11 +393,10 @@ bool Graphics::InitializeScene()
 			);
 			float x = rand() % 200 - 100;
 			float z = rand() % 200 - 100;
-			//float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.3f - 0.2f)));
-			float r = 1;
+			float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.0f - 0.2f)));
 			gameObject.SetPosition(x, 0, z);
 			gameObject.SetRotation(90, 0, 0);
-			gameObject.SetScale(skullScaleMod * r, skullScaleMod * r, skullScaleMod * r);
+			gameObject.SetScale(skullScaleMod, skullScaleMod, skullScaleMod , r);
 			gameObjects.push_back(gameObject);
 		}
 
@@ -395,10 +413,9 @@ bool Graphics::InitializeScene()
 			);
 			float x = rand() % 200 - 100;
 			float z = rand() % 200 - 100;
-			//float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.3f - 0.2f)));
-			float r = 1;
+			float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (3.0f - 0.2f)));
 			gameObject.SetPosition(x, 0, z);
-			gameObject.SetScale(nanusuitScaleMod * r, nanusuitScaleMod * r, nanusuitScaleMod * r);
+			gameObject.SetScale(nanusuitScaleMod, nanusuitScaleMod, nanusuitScaleMod, r);
 			gameObjects.push_back(gameObject);
 		}
 
@@ -415,26 +432,11 @@ bool Graphics::InitializeScene()
 			);
 			float x = rand() % 200 - 100;
 			float z = rand() % 200 - 100;
-			//float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.3f - 0.2f)));
-			float r = 1;
+			float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (2.0f - 0.2f)));
 			gameObject.SetPosition(x, 0, z);
-			gameObject.SetScale(alocasiaScaleMod * r, alocasiaScaleMod * r, alocasiaScaleMod * r);
+			gameObject.SetScale(alocasiaScaleMod, alocasiaScaleMod, alocasiaScaleMod, r);
 			gameObjects.push_back(gameObject);
 		}
-
-		//GameObject gameObject;
-		//gameObject.Initialize(
-		//	"Data\\Objects\\Samples\\orange_embeddedtexture.fbx",
-		//	this->device.Get(),
-		//	this->deviceContext.Get(),
-		//	this->cb_vs_VertexShader
-		//);
-		//float x = rand() % 200 - 100;
-		//float z = rand() % 200 - 100;
-		//float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.3f - 0.2f)));
-		//gameObject.SetPosition(20, 0, 20);
-		//gameObject.SetScale(r, r, r);
-		//gameObjects.push_back(gameObject);
 
 		//Initialize model(s)
 		if (!mainPlane.Initialize(this->device.Get(), this->deviceContext.Get(), this->cb_vs_VertexShader))

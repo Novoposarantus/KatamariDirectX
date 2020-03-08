@@ -36,7 +36,7 @@ void GameObject::UpdateWorldMatrix()
 	if (!this->IsAttachedToMain())
 	{
 		this->worldMatrix = Matrix::CreateFromYawPitchRoll(this->rot.y, this->rot.x, this->rot.z)
-			* Matrix::CreateScale(this->scale);
+			* Matrix::CreateScale(this->scale * size);
 		this->worldMatrix.Translation(Vector3(this->pos.x, this->pos.y, this->pos.z));
 	}
 	else 
@@ -44,10 +44,10 @@ void GameObject::UpdateWorldMatrix()
 		auto transToWorld = Matrix::Identity;
 		transToWorld.Translation(this->mainGameObject->GetPosition());
 		auto transToLocal = Matrix::Identity;
-		transToLocal.Translation(this->mainObjectR);
+		transToLocal.Translation(this->mainObjectR);	
 		this->worldMatrix = 
 			Matrix::Identity 
-			* Matrix::CreateScale(this->scale) 
+			* Matrix::CreateScale(this->scale * size) 
 			* transToLocal
 			* Matrix::CreateFromYawPitchRoll(this->rot.y, this->rot.x, this->rot.z)
 			* transToWorld;
@@ -110,14 +110,14 @@ void GameObject::SetRotation(float x, float y, float z)
 	this->UpdateWorldMatrix();
 }
 
-void GameObject::SetScale(const Vector3& scale, float size = 1)
+void GameObject::SetScale(const Vector3& scale, float size)
 {
 	this->scale = scale;
 	this->size = size;
 	this->UpdateWorldMatrix();
 }
 
-void GameObject::SetScale(float x, float y, float z, float size = 1)
+void GameObject::SetScale(float x, float y, float z, float size)
 {
 	this->scale = Vector3(x, y, z);
 	this->size = size;
@@ -143,16 +143,18 @@ void GameObject::AdjustRotation(float x, float y, float z)
 
 const Vector3 GameObject::GetMaxDirection()
 {
-	return MulVector3(this->model.GetMaxDirections(), this->scale) + this->pos;
+	return MulVector3(this->model.GetMaxDirections(), this->scale * this->size) + this->pos;
 }
 
 const Vector3 GameObject::GeMinDirection()
 {
-	return MulVector3(this->model.GetMinDirections(), this->scale) + this->pos;
+	return MulVector3(this->model.GetMinDirections(), this->scale * this->size) + this->pos;
 }
 
-const bool GameObject::CheckColision(GameObject& gameObject)
+const bool GameObject::CheckColision(GameObject& gameObject, float curSize)
 {
+	if (curSize < this->size)
+		return false;
 	auto maxDirOwn = this->GetMaxDirection();
 	auto minDirOwn = this->GeMinDirection();
 	auto maxDirTo = gameObject.GetMaxDirection();

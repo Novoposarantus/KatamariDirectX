@@ -29,7 +29,7 @@ public:
 	void AdjustRotation(float x, float y, float z);
 	const Vector3 GetMaxDirection();
 	const Vector3 GeMinDirection();
-	const bool CheckColision(GameObject& gameObject);
+	const bool CheckColision(GameObject& gameObject, float curSize);
 	const Vector3& GetForwardVector();
 	const Vector3& GetLeftVector();
 	void AttachToMain(GameObject* mainObject);
