@@ -49,7 +49,9 @@ void Graphics::RenderFrame()
 	this->mainPlane.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
 	for (int i = 0; i < this->gameObjects.size(); i++)
 	{
-		 if (!this->gameObjects[i].IsAttachedToMain() && this->gameObjects[i].CheckColision(this->mainObject, this->mainObjectSize))
+		 if (	!this->gameObjects[i].IsAttachedToMain() 
+			 && this->gameObjects[i].CanAttach(this->mainObjectSize) 
+			 && this->gameObjects[i].CheckColision(this->mainObject))
 		{
 			this->gameObjects[i].AttachToMain(&this->mainObject);
 			this->mainObjectSize += this->gameObjects[i].size / 2;

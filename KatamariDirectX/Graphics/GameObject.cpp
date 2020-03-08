@@ -151,10 +151,8 @@ const Vector3 GameObject::GeMinDirection()
 	return MulVector3(this->model.GetMinDirections(), this->scale * this->size) + this->pos;
 }
 
-const bool GameObject::CheckColision(GameObject& gameObject, float curSize)
+const bool GameObject::CheckColision(GameObject& gameObject)
 {
-	if (curSize < this->size)
-		return false;
 	auto maxDirOwn = this->GetMaxDirection();
 	auto minDirOwn = this->GeMinDirection();
 	auto maxDirTo = gameObject.GetMaxDirection();
@@ -168,6 +166,28 @@ const bool GameObject::CheckColision(GameObject& gameObject, float curSize)
 		return true;
 	};
 	return false;
+}
+
+const bool GameObject::CheckFutureColision(GameObject& gameObject, Vector3 adjustPosition)
+{
+	auto maxDirOwn = this->GetMaxDirection();
+	auto minDirOwn = this->GeMinDirection();
+	auto maxDirTo = gameObject.GetMaxDirection() + adjustPosition;
+	auto minDirTo = gameObject.GeMinDirection() + adjustPosition;
+	if (maxDirTo.x >= minDirOwn.x
+		&& maxDirTo.z >= minDirOwn.z
+		&& minDirTo.x <= maxDirOwn.x
+		&& minDirTo.z <= maxDirOwn.z)
+	{
+		this->mainObjectR = this->pos - gameObject.pos;
+		return true;
+	};
+	return false;
+}
+
+const bool GameObject::CanAttach(float curSize)
+{
+	return curSize >= this->size;
 }
 
 

@@ -42,7 +42,6 @@ void Engine::Update()
 		{
 			auto posX = (float)me.GetPosX();
 			this->gfx.camera.Rotation(posX * dt, (float)me.GetPosY() * dt);
-			//this->gfx.mainObject.AdjustRotation(0, -posX * this->gfx.camera.rotationSpeed * dt, 0);
 		}
 	}
 
@@ -62,29 +61,34 @@ void Engine::Update()
 	{
 		mainObjectPos += -this->gfx.camera.GetForwardVector() * dt;
 		mainObjectRot += this->gfx.camera.GetLeftVector() * dt;
-		//mainObjectRot += Vector3(this->gfx.mainObject.rotationSpeed * dt, 0, 0);
 	}
 	if (keyboard.KeyIsPressed('S'))
 	{
 		mainObjectPos += this->gfx.camera.GetForwardVector() * dt;
 		mainObjectRot += -this->gfx.camera.GetLeftVector() * dt;
-		//mainObjectRot += Vector3(-this->gfx.mainObject.rotationSpeed * dt, 0, 0);
 	}
 	if (keyboard.KeyIsPressed('A'))
 	{
 		mainObjectPos += this->gfx.camera.GetLeftVector() * dt;
 		mainObjectRot += this->gfx.camera.GetForwardVector() * dt;
-		//mainObjectRot += Vector3(0, 0, this->gfx.mainObject.rotationSpeed * dt);
 	}
 	if (keyboard.KeyIsPressed('D'))
 	{
 		mainObjectPos += -this->gfx.camera.GetLeftVector() * dt;
 		mainObjectRot += -this->gfx.camera.GetForwardVector() * dt;
-		//mainObjectRot += Vector3(0, 0, -this->gfx.mainObject.rotationSpeed * dt);
 	}
 
 	if (mainObjectPos.x != 0 || mainObjectPos.y != 0 || mainObjectPos.z != 0)
 	{
+		for (int i = 0; i < this->gfx.gameObjects.size(); i++)
+		{
+			if (	!this->gfx.gameObjects[i].IsAttachedToMain()
+				&&	this->gfx.gameObjects[i].CheckFutureColision(this->gfx.mainObject, mainObjectPos)
+				&&	!this->gfx.gameObjects[i].CanAttach(this->gfx.mainObjectSize))
+			{
+				return;
+			}
+		}
 		this->gfx.mainObject.AdjustPosition(mainObjectPos);
 		this->gfx.camera.UpdateViewMatrix();
 	}
