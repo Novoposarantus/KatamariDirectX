@@ -30,7 +30,6 @@ void Model::Draw(const DirectX::SimpleMath::Matrix& worldMatrix, const DirectX::
 {
 	//Update Constant buffer with WVP Matrix
 	this->cb_vs_vertexshader->data.mat = worldMatrix * viewProjectionMatrix; //Calculate World-View-Projection Matrix
-	this->cb_vs_vertexshader->data.mat = XMMatrixTranspose(this->cb_vs_vertexshader->data.mat);
 	this->cb_vs_vertexshader->ApplyChanges();
 	this->deviceContext->VSSetConstantBuffers(0, 1, this->cb_vs_vertexshader->GetAddressOf());
 
@@ -40,6 +39,16 @@ void Model::Draw(const DirectX::SimpleMath::Matrix& worldMatrix, const DirectX::
 	{
 		meshes[i].Draw();
 	}
+}
+
+const DirectX::SimpleMath::Vector3& Model::GetMinDirections()
+{
+	return DirectX::SimpleMath::Vector3(this->xMinus, this->yMinus, this->zMinus);
+}
+
+const DirectX::SimpleMath::Vector3& Model::GetMaxDirections()
+{
+	return DirectX::SimpleMath::Vector3(this->xPlus, this->yPlus, this->zPlus);
 }
 
 bool Model::LoadModel(const std::string& filePath)
@@ -78,6 +87,12 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 	// Data to fill
 	std::vector<Vertex> vertices;
 	std::vector<DWORD> indices;
+	this->xPlus = mesh->mVertices[0].x;
+	this->xMinus = mesh->mVertices[0].x;
+	this->yPlus = mesh->mVertices[0].y;
+	this->yMinus = mesh->mVertices[0].y;
+	this->zPlus = mesh->mVertices[0].z;
+	this->zMinus = mesh->mVertices[0].z;
 
 	//Get vertices
 	for (UINT i = 0; i < mesh->mNumVertices; i++)
@@ -87,6 +102,35 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 		vertex.pos.x = mesh->mVertices[i].x;
 		vertex.pos.y = mesh->mVertices[i].y;
 		vertex.pos.z = mesh->mVertices[i].z;
+		if (this->xPlus < vertex.pos.x)
+		{
+			this->xPlus = vertex.pos.x;
+		}
+
+		if (this->xMinus > vertex.pos.x)
+		{
+			this->xMinus = vertex.pos.x;
+		}
+
+		if (this->yPlus < vertex.pos.y)
+		{
+			this->yPlus = vertex.pos.y;
+		}
+
+		if (this->yMinus > vertex.pos.y)
+		{
+			this->yMinus = vertex.pos.y;
+		}
+
+		if (this->zPlus < vertex.pos.z)
+		{
+			this->zPlus = vertex.pos.z;
+		}
+
+		if (this->zMinus > vertex.pos.z)
+		{
+			this->zMinus = vertex.pos.z;
+		}
 
 		if (mesh->mTextureCoords[0])
 		{

@@ -37,3 +37,12 @@ constexpr T to_rad(T deg)
 {
 	return deg * PI / (T)180.0;
 }
+
+DirectX::SimpleMath::Vector3 MulVector3(DirectX::SimpleMath::Vector3 dir, DirectX::SimpleMath::Vector3 scale)
+{
+	DirectX::SimpleMath::Vector3 result;
+	result.x = dir.x * scale.x;
+	result.y = dir.y * scale.y;
+	result.z = dir.z * scale.z;
+	return result;
+}

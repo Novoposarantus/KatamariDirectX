@@ -40,40 +40,66 @@ void Engine::Update()
 		MouseEvent me = mouse.ReadEvent();
 		if (me.GetType() == MouseEvent::EventType::RAW_MOVE)
 		{
-			this->gfx.camera.Rotation((float)me.GetPosX(), (float)me.GetPosY());
+			auto posX = (float)me.GetPosX();
+			this->gfx.camera.Rotation(posX * dt, (float)me.GetPosY() * dt);
+			//this->gfx.mainObject.AdjustRotation(0, -posX * this->gfx.camera.rotationSpeed * dt, 0);
 		}
 	}
 
-	const float cameraSpeed = 0.01f;
+	if (keyboard.KeyIsPressed(VK_UP))
+	{
+		this->gfx.camera.Rotation(0, 10);
+	}
+	if (keyboard.KeyIsPressed(VK_DOWN))
+	{
+		this->gfx.camera.Rotation(0, -10);
+	}
+	
+	auto mainObjectRot = Vector3(0, 0, 0);
+	auto mainObjectPos = Vector3(0, 0, 0);
 
 	if (keyboard.KeyIsPressed('W'))
 	{
-		this->gfx.mainObject.AdjustPosition(-this->gfx.camera.GetForwardVector() * cameraSpeed * dt);
-		//this->gfx.camera.UpdateViewMatrix();
+		mainObjectPos += -this->gfx.camera.GetForwardVector() * dt;
+		mainObjectRot += this->gfx.camera.GetLeftVector() * dt;
+		//mainObjectRot += Vector3(this->gfx.mainObject.rotationSpeed * dt, 0, 0);
 	}
 	if (keyboard.KeyIsPressed('S'))
 	{
-		this->gfx.mainObject.AdjustPosition(-this->gfx.camera.GetBackwardVector() * cameraSpeed * dt);
-		//this->gfx.camera.UpdateViewMatrix();
+		mainObjectPos += this->gfx.camera.GetForwardVector() * dt;
+		mainObjectRot += -this->gfx.camera.GetLeftVector() * dt;
+		//mainObjectRot += Vector3(-this->gfx.mainObject.rotationSpeed * dt, 0, 0);
 	}
 	if (keyboard.KeyIsPressed('A'))
 	{
-		this->gfx.mainObject.AdjustPosition(-this->gfx.camera.GetLeftVector() * cameraSpeed * dt);
-		//this->gfx.camera.UpdateViewMatrix();
+		mainObjectPos += this->gfx.camera.GetLeftVector() * dt;
+		mainObjectRot += this->gfx.camera.GetForwardVector() * dt;
+		//mainObjectRot += Vector3(0, 0, this->gfx.mainObject.rotationSpeed * dt);
 	}
 	if (keyboard.KeyIsPressed('D'))
 	{
-		this->gfx.mainObject.AdjustPosition(-this->gfx.camera.GetRightVector() * cameraSpeed * dt);
-		//this->gfx.camera.UpdateViewMatrix();
+		mainObjectPos += -this->gfx.camera.GetLeftVector() * dt;
+		mainObjectRot += -this->gfx.camera.GetForwardVector() * dt;
+		//mainObjectRot += Vector3(0, 0, -this->gfx.mainObject.rotationSpeed * dt);
 	}
-	//if (keyboard.KeyIsPressed(VK_SPACE))
-	//{
-	//	this->gfx.camera.AdjustPosition(0.0f, cameraSpeed * dt, 0.0f);
-	//}
-	//if (keyboard.KeyIsPressed('Z'))
-	//{
-	//	this->gfx.camera.AdjustPosition(0.0f, -cameraSpeed * dt, 0.0f);
-	//}
+
+	if (mainObjectPos.x != 0 || mainObjectPos.y != 0 || mainObjectPos.z != 0)
+	{
+		this->gfx.mainObject.AdjustPosition(mainObjectPos);
+		this->gfx.camera.UpdateViewMatrix();
+	}
+
+	if (mainObjectRot.x != 0 || mainObjectRot.y != 0 || mainObjectRot.z != 0)
+	{
+		this->gfx.mainObject.AdjustRotation(mainObjectRot);
+		for (int i = 0; i < this->gfx.gameObjects.size(); i++)
+		{
+			if (this->gfx.gameObjects[i].IsAttachedToMain())
+			{
+				this->gfx.gameObjects[i].AdjustRotation(mainObjectRot);
+			}
+		}
+	}
 
 }
 

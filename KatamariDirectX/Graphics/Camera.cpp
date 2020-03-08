@@ -1,14 +1,11 @@
 #include "Camera.h"
-
+#include <algorithm>
 
 Camera::Camera()
 {
-	r = 2.0f;
-	theta = 0.0f;
-	phi = -10.0f;
-	pitch = 0.0f;
+	r = 4.0f;
+	pitch = 20.0f;
 	yaw = 0.0f;
-	roll = 0.0f;
 	this->UpdateViewMatrix();
 }
 
@@ -17,320 +14,67 @@ void Camera::SetParent(GameObject* mainGameObject)
 	this->mainGameObject = mainGameObject;
 }
 
-const DirectX::SimpleMath::Matrix& Camera::GetViewMatrix() const
+const Matrix& Camera::GetViewMatrix() const
 {
 	return this->viewMatrix;
 }
 
-const DirectX::SimpleMath::Matrix& Camera::GetProjectionMatrix() const
+const Matrix& Camera::GetProjectionMatrix() const
 {
 	return this->projectionMatrix;
 }
 
-void Camera::Rotation(float x, float y)
+void Camera::Rotation(float dx, float dy)
 {
-	this->phi -= y * this->rotationSpeed;
-	this->theta += x * this->rotationSpeed;
+	this->yaw -= dx * rotationSpeed;
 	this->UpdateViewMatrix();
-}
-
-void Camera::SetPitch(float pitch)
-{
-	this->pitch += pitch;
-	this->UpdateViewMatrix();
-}
-
-void Camera::SetYaw(float yaw)
-{
-	this->yaw += yaw;
-	this->UpdateViewMatrix();
-}
-
-void Camera::SetRoll(float roll)
-{
-	this->roll += roll;
-	this->UpdateViewMatrix();
-}
-
-const XMVECTOR& Camera::GetForwardVector()
-{
-	return this->vec_forward;
-}
-
-const XMVECTOR& Camera::GetRightVector()
-{
-	return this->vec_right;
-}
-
-const XMVECTOR& Camera::GetBackwardVector()
-{
-	return this->vec_backward;
-}
-
-const XMVECTOR& Camera::GetLeftVector()
-{
-	return this->vec_left;
 }
 
 void Camera::UpdateViewMatrix()
 {
-	if (mainGameObject == nullptr)
-		return;
-	auto mainGameObjectWorldMatrix = mainGameObject->GetWorldMatrix();
+	Vector3 personPos(0, 0, 0);
+	if (mainGameObject != nullptr)
+	{
+		auto mainGameObjectWorldMatrix = mainGameObject->GetWorldMatrix();
+		personPos = mainGameObjectWorldMatrix.Translation();
+	}
+	auto mat = Matrix::CreateFromYawPitchRoll(this->yaw, this->pitch, 0);
+	Vector3 pos(0, r, 0);
+	pos = Vector3::Transform(pos, mat) + personPos;
+	this->viewMatrix = Matrix::CreateLookAt(
+		pos,
+		personPos, 
+	Vector3::Up);
+	
+	Matrix vecRotationMatrix = Matrix::CreateFromYawPitchRoll(this->yaw, 0.0f, 0.0f);
+	this->vec_forward = Vector3::Transform(this->DEFAULT_FORWARD_VECTOR, vecRotationMatrix) * transSpeed;
+	this->vec_backward = Vector3::Transform(this->DEFAULT_BACKWARD_VECTOR, vecRotationMatrix) * transSpeed;
+	this->vec_right = Vector3::Transform(this->DEFAULT_RIGHT_VECTOR, vecRotationMatrix) * transSpeed;
+	this->vec_left = Vector3::Transform(this->DEFAULT_LEFT_VECTOR, vecRotationMatrix) * transSpeed;
+}
 
-	XMVECTOR outScale;
-	XMVECTOR outRotQuat;
-	XMVECTOR outTrans;
-	XMMatrixDecompose(
-		&outScale,
-		&outRotQuat,
-		&outTrans,
-		mainGameObjectWorldMatrix
-	);
+const Vector3& Camera::GetForwardVector()
+{
+	return this->vec_forward;
+}
 
-	DirectX::SimpleMath::Vector3 trans;
-	XMStoreFloat3(&trans, outTrans);
+const Vector3& Camera::GetRightVector()
+{
+	return this->vec_right;
+}
 
-	const auto pos = XMVector3Transform(
-		XMVectorSet(0.0f, 0.0f, -r, 0.0f),
-		XMMatrixRotationRollPitchYaw(phi, -theta, 0.0f)
-	);
+const Vector3& Camera::GetBackwardVector()
+{
+	return this->vec_backward;
+}
 
-
-	DirectX::SimpleMath::Vector3 posTrans;
-	XMStoreFloat3(&posTrans, pos);
-
-	posTrans.x += trans.x;
-	posTrans.y += trans.y;
-	posTrans.z += trans.z;
-
-	DirectX::SimpleMath::Vector3 vector;
-
-	this->viewMatrix = XMMatrixLookAtLH(
-		pos, XMVectorZero(),
-		XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)
-	) * XMMatrixRotationRollPitchYaw(
-		pitch, -yaw, roll
-	);
-
-	DirectX::SimpleMath::Matrix vecRotationMatrix = XMMatrixRotationRollPitchYaw(0.0f, -this->theta, 0.0f);
-	this->vec_forward = XMVector3TransformCoord(this->DEFAULT_FORWARD_VECTOR, vecRotationMatrix);
-	this->vec_backward = XMVector3TransformCoord(this->DEFAULT_BACKWARD_VECTOR, vecRotationMatrix);
-	this->vec_left = XMVector3TransformCoord(this->DEFAULT_LEFT_VECTOR, vecRotationMatrix);
-	this->vec_right = XMVector3TransformCoord(this->DEFAULT_RIGHT_VECTOR, vecRotationMatrix);
-
+const Vector3& Camera::GetLeftVector()
+{
+	return this->vec_left;
 }
 
 void Camera::SetProjectionValues(float fovDegrees, float aspectRatio, float nearZ, float farZ)
 {
 	float fovRadians = (fovDegrees / 360.0f) * XM_2PI;
-	this->projectionMatrix = XMMatrixPerspectiveFovLH(fovRadians, aspectRatio, nearZ, farZ);
+	this->projectionMatrix = Matrix::CreatePerspectiveFieldOfView(fovRadians, aspectRatio, nearZ, farZ);
 }
-
-
-//
-//Camera::Camera()
-//{
-//	this->pos = DirectX::SimpleMath::Vector3(0.0f, 0.0f, 0.0f);
-//	this->posVector = XMLoadFloat3(&this->pos);
-//	this->rot = DirectX::SimpleMath::Vector3(0.0f, 0.0f, 0.0f);
-//	this->rotVector = XMLoadFloat3(&this->rot);
-//	this->UpdateViewMatrix();
-//}
-//
-//void Camera::SetProjectionValues(float fovDegrees, float aspectRatio, float nearZ, float farZ)
-//{
-//	float fovRadians = (fovDegrees / 360.0f) * XM_2PI;
-//	this->projectionMatrix = DirectX::SimpleMath::MatrixPerspectiveFovLH(fovRadians, aspectRatio, nearZ, farZ);
-//}
-//
-//const DirectX::SimpleMath::Matrix& Camera::GetViewMatrix() const
-//{
-//	return this->viewMatrix;
-//}
-//
-//const DirectX::SimpleMath::Matrix& Camera::GetProjectionMatrix() const
-//{
-//	return this->projectionMatrix;
-//}
-//
-//const XMVECTOR& Camera::GetPositionVector() const
-//{
-//	return this->posVector;
-//}
-//
-//const DirectX::SimpleMath::Vector3& Camera::GetPositionFloat3() const
-//{
-//	return this->pos;
-//}
-//
-//const XMVECTOR& Camera::GetRotationVector() const
-//{
-//	return this->rotVector;
-//}
-//
-//const DirectX::SimpleMath::Vector3& Camera::GetRotationFloat3() const
-//{
-//	return this->rot;
-//}
-//
-//void Camera::SetPosition(const XMVECTOR& pos)
-//{
-//	XMStoreFloat3(&this->pos, pos);
-//	this->posVector = pos;
-//	this->UpdateViewMatrix();
-//}
-//
-//
-//void Camera::SetPosition(const DirectX::SimpleMath::Vector3& pos)
-//{
-//	this->pos = pos;
-//	this->posVector = XMLoadFloat3(&this->pos);
-//	this->UpdateViewMatrix();
-//}
-//
-//void Camera::SetPosition(float x, float y, float z)
-//{
-//	this->pos = DirectX::SimpleMath::Vector3(x, y, z);
-//	this->posVector = XMLoadFloat3(&this->pos);
-//	this->UpdateViewMatrix();
-//}
-//
-//void Camera::AdjustPosition(const XMVECTOR& pos)
-//{
-//	this->posVector += pos;
-//	XMStoreFloat3(&this->pos, this->posVector);
-//	this->UpdateViewMatrix();
-//}
-//
-//void Camera::AdjustPosition(const DirectX::SimpleMath::Vector3& pos)
-//{
-//	this->pos.x += pos.y;
-//	this->pos.y += pos.y;
-//	this->pos.z += pos.z;
-//	this->posVector = XMLoadFloat3(&this->pos);
-//	this->UpdateViewMatrix();
-//}
-//
-//void Camera::AdjustPosition(float x, float y, float z)
-//{
-//	this->pos.x += x;
-//	this->pos.y += y;
-//	this->pos.z += z;
-//	this->posVector = XMLoadFloat3(&this->pos);
-//	this->UpdateViewMatrix();
-//}
-//
-//void Camera::SetRotation(const XMVECTOR& rot)
-//{
-//	this->rotVector = rot;
-//	XMStoreFloat3(&this->rot, rot);
-//	this->UpdateViewMatrix();
-//}
-//
-//void Camera::SetRotation(const DirectX::SimpleMath::Vector3& rot)
-//{
-//	this->rot = rot;
-//	this->rotVector = XMLoadFloat3(&this->rot);
-//	this->UpdateViewMatrix();
-//}
-//
-//void Camera::SetRotation(float x, float y, float z)
-//{
-//	this->rot = DirectX::SimpleMath::Vector3(x, y, z);
-//	this->rotVector = XMLoadFloat3(&this->rot);
-//	this->UpdateViewMatrix();
-//}
-//
-//void Camera::AdjustRotation(const XMVECTOR& rot)
-//{
-//	this->rotVector += rot;
-//	XMStoreFloat3(&this->rot, this->rotVector);
-//	this->UpdateViewMatrix();
-//}
-//
-//void Camera::AdjustRotation(const DirectX::SimpleMath::Vector3& rot)
-//{
-//	this->rot.x += rot.x;
-//	this->rot.y += rot.y;
-//	this->rot.z += rot.z;
-//	this->rotVector = XMLoadFloat3(&this->rot);
-//	this->UpdateViewMatrix();
-//}
-//
-//void Camera::AdjustRotation(float x, float y, float z)
-//{
-//	this->rot.x += x;
-//	this->rot.y += y;
-//	this->rot.z += z;
-//	this->rotVector = XMLoadFloat3(&this->rot);
-//	this->UpdateViewMatrix();
-//}
-//
-//void Camera::SetLookAtPos(DirectX::SimpleMath::Vector3 lookAtPos)
-//{
-//	//Verify that look at pos is not the same as cam pos. They cannot be the same as that wouldn't make sense and would result in undefined behavior.
-//	if (lookAtPos.x == this->pos.x && lookAtPos.y == this->pos.y && lookAtPos.z == this->pos.z)
-//		return;
-//
-//	lookAtPos.x = this->pos.x - lookAtPos.x;
-//	lookAtPos.y = this->pos.y - lookAtPos.y;
-//	lookAtPos.z = this->pos.z - lookAtPos.z;
-//
-//	float pitch = 0.0f;
-//	if (lookAtPos.y != 0.0f)
-//	{
-//		const float distance = sqrt(lookAtPos.x * lookAtPos.x + lookAtPos.z * lookAtPos.z);
-//		pitch = atan(lookAtPos.y / distance);
-//	}
-//
-//	float yaw = 0.0f;
-//	if (lookAtPos.x != 0.0f)
-//	{
-//		yaw = atan(lookAtPos.x / lookAtPos.z);
-//	}
-//	if (lookAtPos.z > 0)
-//		yaw += XM_PI;
-//
-//	this->SetRotation(pitch, yaw, 0.0f);
-//}
-//
-//const XMVECTOR& Camera::GetForwardVector()
-//{
-//	return this->vec_forward;
-//}
-//
-//const XMVECTOR& Camera::GetRightVector()
-//{
-//	return this->vec_right;
-//}
-//
-//const XMVECTOR& Camera::GetBackwardVector()
-//{
-//	return this->vec_backward;
-//}
-//
-//const XMVECTOR& Camera::GetLeftVector()
-//{
-//	return this->vec_left;
-//}
-//
-//void Camera::UpdateViewMatrix() //Updates view matrix and also updates the movement vectors
-//{
-//	//Calculate camera rotation matrix
-//	DirectX::SimpleMath::Matrix camRotationMatrix = DirectX::SimpleMath::MatrixRotationRollPitchYaw(this->rot.x, this->rot.y, this->rot.z);
-//	//Calculate unit vector of cam target based off camera forward value transformed by cam rotation matrix
-//	XMVECTOR camTarget = XMVector3TransformCoord(this->DEFAULT_FORWARD_VECTOR, camRotationMatrix);
-//	//Adjust cam target to be offset by the camera's current position
-//	camTarget += this->posVector;
-//	//Calculate up direction based on current rotation
-//	XMVECTOR upDir = XMVector3TransformCoord(this->DEFAULT_UP_VECTOR, camRotationMatrix);
-//	//Rebuild view matrix
-//	this->viewMatrix = DirectX::SimpleMath::MatrixLookAtLH(this->posVector, camTarget, upDir);
-//
-//	DirectX::SimpleMath::Matrix vecRotationMatrix = DirectX::SimpleMath::MatrixRotationRollPitchYaw(0.0f, this->rot.y, 0.0f);
-//	this->vec_forward = XMVector3TransformCoord(this->DEFAULT_FORWARD_VECTOR, vecRotationMatrix);
-//	this->vec_backward = XMVector3TransformCoord(this->DEFAULT_BACKWARD_VECTOR, vecRotationMatrix);
-//	this->vec_left = XMVector3TransformCoord(this->DEFAULT_LEFT_VECTOR, vecRotationMatrix);
-//	this->vec_right = XMVector3TransformCoord(this->DEFAULT_RIGHT_VECTOR, vecRotationMatrix);
-//}

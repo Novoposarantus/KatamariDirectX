@@ -1,6 +1,9 @@
 #include "Graphics.h"
 #include "..\\Macros.h"
 #include <algorithm>
+#include <cstdlib>
+#include <DirectXMath.h>
+#include <DirectXCollision.h>
 
 bool Graphics::Initialize(HWND hwnd, int width, int height)
 {
@@ -42,9 +45,16 @@ void Graphics::RenderFrame()
 
 	this->mainObject.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
 	this->mainPlane.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
+	for (int i = 0; i < this->gameObjects.size(); i++)
+	{
+		 if (!this->gameObjects[i].IsAttachedToMain() && this->gameObjects[i].CheckColision(this->mainObject))
+		{
+			this->gameObjects[i].AttachToMain(&this->mainObject);
+		}
+		this->gameObjects[i].Draw(camera.GetViewMatrix()* camera.GetProjectionMatrix());
+	}
 
-
-	//Draw Text
+#pragma region DrawText
 	static int fpsCounter = 0;
 	fpsCounter += 1;
 	static std::string fpsStirng = "FPS: 0";
@@ -73,10 +83,67 @@ void Graphics::RenderFrame()
 		DirectX::XMFLOAT2(0, 0),
 		DirectX::XMFLOAT2(1.0f, 1.0f)
 	);
+	//auto pos = mainObject.GetPosition();
+	//auto vec_pos_string = "Position main X: " + std::to_string(pos.x) + ", Y: " + std::to_string(pos.y) + ", Z: " + std::to_string(pos.z);
+	//spriteFont->DrawString(
+	//	spriteBatch.get(),
+	//	vec_pos_string.c_str(),
+	//	DirectX::XMFLOAT2(0, 50),
+	//	DirectX::Colors::White,
+	//	0.0f,
+	//	DirectX::XMFLOAT2(0, 0),
+	//	DirectX::XMFLOAT2(1.0f, 1.0f)
+	//);
+
+	//auto rot = mainObject.GetRotation();
+	//auto vec_rot_string = "Rotation main: X: " + std::to_string(rot.x) + ", Y: " + std::to_string(rot.y) + ", Z: " + std::to_string(rot.z);
+	//spriteFont->DrawString(
+	//	spriteBatch.get(),
+	//	vec_rot_string.c_str(),
+	//	DirectX::XMFLOAT2(0, 75),
+	//	DirectX::Colors::White,
+	//	0.0f,
+	//	DirectX::XMFLOAT2(0, 0),
+	//	DirectX::XMFLOAT2(1.0f, 1.0f)
+	//);
+
+	//auto forvardCam = camera.GetForwardVector();
+	//auto vec_forvardCam_string = "Forvard Cam X: " + std::to_string(forvardCam.x) + ", Y: " + std::to_string(forvardCam.y) + ", Z: " + std::to_string(forvardCam.z);
+	//spriteFont->DrawString(
+	//	spriteBatch.get(),
+	//	vec_forvardCam_string.c_str(),
+	//	DirectX::XMFLOAT2(0, 100),
+	//	DirectX::Colors::White,
+	//	0.0f,
+	//	DirectX::XMFLOAT2(0, 0),
+	//	DirectX::XMFLOAT2(1.0f, 1.0f)
+	//);
+
+	//auto leftCam = camera.GetLeftVector();
+	//auto vec_leftCam_string = "Left Cam X: " + std::to_string(leftCam.x) + ", Y: " + std::to_string(leftCam.y) + ", Z: " + std::to_string(leftCam.z);
+	//spriteFont->DrawString(
+	//	spriteBatch.get(),
+	//	vec_leftCam_string.c_str(),
+	//	DirectX::XMFLOAT2(0, 125),
+	//	DirectX::Colors::White,
+	//	0.0f,
+	//	DirectX::XMFLOAT2(0, 0),
+	//	DirectX::XMFLOAT2(1.0f, 1.0f)
+	//);
+
+	//auto vec_forvard_string = std::to_string(this->gameObjects[0].CheckColision(this->mainObject));
+	//spriteFont->DrawString(
+	//	spriteBatch.get(),
+	//	vec_forvard_string.c_str(),
+	//	DirectX::XMFLOAT2(0, 75),
+	//	DirectX::Colors::White,
+	//	0.0f,
+	//	DirectX::XMFLOAT2(0, 0),
+	//	DirectX::XMFLOAT2(1.0f, 1.0f)
+	//);
 
 	spriteBatch->End();
-
-	//mainPlane.RenderFrame(deviceContext);
+#pragma endregion
 
 
 	this->swapchain->Present(1, NULL);
@@ -177,6 +244,7 @@ bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
 
 		//Create Rasterizer State
 		CD3D11_RASTERIZER_DESC rasterizerDesc(D3D11_DEFAULT);
+		rasterizerDesc.CullMode = D3D11_CULL_FRONT;
 		hr = this->device->CreateRasterizerState(
 			&rasterizerDesc,
 			this->rasterizerState.GetAddressOf()
@@ -184,14 +252,14 @@ bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
 		COM_ERROR_IF_FAILED(hr, "Failed to create rasterizer state.");
 
 		//Create Rasterizer State Culing front
-		CD3D11_RASTERIZER_DESC rasterizerDesc_CullFront(D3D11_DEFAULT);
+		/*CD3D11_RASTERIZER_DESC rasterizerDesc_CullFront(D3D11_DEFAULT);
 		rasterizerDesc_CullFront.CullMode = D3D11_CULL_MODE::D3D11_CULL_FRONT;
 
 		hr = this->device->CreateRasterizerState(
 			&rasterizerDesc_CullFront,
 			this->rasterizerState_CullFront.GetAddressOf()
 		);
-		COM_ERROR_IF_FAILED(hr, "Failed to create rasterizer state.");
+		COM_ERROR_IF_FAILED(hr, "Failed to create rasterizer state.");*/
 
 		//Create Blend State
 		D3D11_BLEND_DESC blendDesc = { 0 };
@@ -275,13 +343,103 @@ bool Graphics::InitializeScene()
 		//Initialize model(s)
 		if (!mainObject.Initialize("Data\\Objects\\Samples\\orange_embeddedtexture.fbx",this->device.Get(), this->deviceContext.Get(), this->cb_vs_VertexShader))
 			return false;
+		//mainObject.SetScale(0.8f, 0.8f, 0.8f);
+
+		for (int i = 0; i < 10; ++i)
+		{
+			GameObject gameObject;
+			gameObject.Initialize(
+				"Data\\Objects\\Samples\\orange_embeddedtexture.fbx", 
+				this->device.Get(), 
+				this->deviceContext.Get(), 
+				this->cb_vs_VertexShader
+			);
+			float x = rand() % 200 - 100;
+			float z = rand() % 200 - 100; 
+			float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.3f - 0.2f)));
+			gameObject.SetPosition(x, 0, z);
+			gameObject.SetScale(r, r, r);
+			gameObjects.push_back(gameObject);
+		}
+
+		const float skullScaleMod = 0.05f;
+		for (int i = 0; i < 10; ++i)
+		{
+			GameObject gameObject;
+			gameObject.Initialize(
+				"Data\\Objects\\Skull\\12140_Skull_v3_L2.obj",
+				this->device.Get(),
+				this->deviceContext.Get(),
+				this->cb_vs_VertexShader
+			);
+			float x = rand() % 200 - 100;
+			float z = rand() % 200 - 100;
+			//float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.3f - 0.2f)));
+			float r = 1;
+			gameObject.SetPosition(x, 0, z);
+			gameObject.SetRotation(90, 0, 0);
+			gameObject.SetScale(skullScaleMod * r, skullScaleMod * r, skullScaleMod * r);
+			gameObjects.push_back(gameObject);
+		}
+
+		const float nanusuitScaleMod = 0.09f;
+
+		for (int i = 0; i < 10; ++i)
+		{
+			GameObject gameObject;
+			gameObject.Initialize(
+				"Data\\Objects\\nanosuit\\nanosuit.obj",
+				this->device.Get(),
+				this->deviceContext.Get(),
+				this->cb_vs_VertexShader
+			);
+			float x = rand() % 200 - 100;
+			float z = rand() % 200 - 100;
+			//float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.3f - 0.2f)));
+			float r = 1;
+			gameObject.SetPosition(x, 0, z);
+			gameObject.SetScale(nanusuitScaleMod * r, nanusuitScaleMod * r, nanusuitScaleMod * r);
+			gameObjects.push_back(gameObject);
+		}
+
+		const float alocasiaScaleMod = 0.001f;
+
+		for (int i = 0; i < 1; ++i)
+		{
+			GameObject gameObject;
+			gameObject.Initialize(
+				"Data\\Objects\\Alocasia\\01Alocasia_obj.obj",
+				this->device.Get(),
+				this->deviceContext.Get(),
+				this->cb_vs_VertexShader
+			);
+			float x = rand() % 200 - 100;
+			float z = rand() % 200 - 100;
+			//float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.3f - 0.2f)));
+			float r = 1;
+			gameObject.SetPosition(x, 0, z);
+			gameObject.SetScale(alocasiaScaleMod * r, alocasiaScaleMod * r, alocasiaScaleMod * r);
+			gameObjects.push_back(gameObject);
+		}
+
+		//GameObject gameObject;
+		//gameObject.Initialize(
+		//	"Data\\Objects\\Samples\\orange_embeddedtexture.fbx",
+		//	this->device.Get(),
+		//	this->deviceContext.Get(),
+		//	this->cb_vs_VertexShader
+		//);
+		//float x = rand() % 200 - 100;
+		//float z = rand() % 200 - 100;
+		//float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.3f - 0.2f)));
+		//gameObject.SetPosition(20, 0, 20);
+		//gameObject.SetScale(r, r, r);
+		//gameObjects.push_back(gameObject);
 
 		//Initialize model(s)
 		if (!mainPlane.Initialize(this->device.Get(), this->deviceContext.Get(), this->cb_vs_VertexShader))
 			return false;
-
-		//mainObject.SetPosition(5, 5, 0.3);
-		camera.SetProjectionValues(90.0f, static_cast<float>(windowWidth) / static_cast<float>(windowHeight), 0.1f, 1000.0f);
+		camera.SetProjectionValues(90.0f, static_cast<float>(windowWidth) / static_cast<float>(windowHeight), 0.1f, 10000.0f);
 	}
 	catch (COMException & exception)
 	{

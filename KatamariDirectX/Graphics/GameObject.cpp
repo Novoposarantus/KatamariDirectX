@@ -1,6 +1,5 @@
 #include "GameObject.h"
-
-
+#include "..\\Math.h"
 
 bool GameObject::Initialize(
 	const std::string& filePath,
@@ -13,85 +12,81 @@ bool GameObject::Initialize(
 
 	this->SetPosition(0.0f, 0.0f, 0.0f);
 	this->SetRotation(0.0f, 0.0f, 0.0f);
+	this->SetScale(1.0f, 1.0f, 1.0f, 1.0f);
 	this->UpdateWorldMatrix();
 	return true;
 }
 
-void GameObject::Draw(const DirectX::SimpleMath::Matrix& viewProjectionMatrix)
+void GameObject::Draw(const Matrix& viewProjectionMatrix)
 {
+	if (this->IsAttachedToMain())
+	{
+		this->UpdateWorldMatrix();
+	}
 	model.Draw(this->worldMatrix, viewProjectionMatrix);
 }
 
-const DirectX::SimpleMath::Matrix& GameObject::GetWorldMatrix() const
+const Matrix& GameObject::GetWorldMatrix() const
 {
 	return this->worldMatrix;
 }
 
 void GameObject::UpdateWorldMatrix()
 {
-	this->worldMatrix = XMMatrixRotationRollPitchYaw(this->rot.x, this->rot.y, this->rot.z) 
-		* XMMatrixTranslation(this->pos.x, this->pos.y, this->pos.z);
-	DirectX::SimpleMath::Matrix vecRotationMatrix = XMMatrixRotationRollPitchYaw(0.0f, this->rot.y, 0.0f);
-	this->vec_forward = XMVector3TransformCoord(this->DEFAULT_FORWARD_VECTOR, vecRotationMatrix);
-	this->vec_backward = XMVector3TransformCoord(this->DEFAULT_BACKWARD_VECTOR, vecRotationMatrix);
-	this->vec_left = XMVector3TransformCoord(this->DEFAULT_LEFT_VECTOR, vecRotationMatrix);
-	this->vec_right = XMVector3TransformCoord(this->DEFAULT_RIGHT_VECTOR, vecRotationMatrix);
+	if (!this->IsAttachedToMain())
+	{
+		this->worldMatrix = Matrix::CreateFromYawPitchRoll(this->rot.y, this->rot.x, this->rot.z)
+			* Matrix::CreateScale(this->scale);
+		this->worldMatrix.Translation(Vector3(this->pos.x, this->pos.y, this->pos.z));
+	}
+	else 
+	{
+		auto transToWorld = Matrix::Identity;
+		transToWorld.Translation(this->mainGameObject->GetPosition());
+		auto transToLocal = Matrix::Identity;
+		transToLocal.Translation(this->mainObjectR);
+		this->worldMatrix = 
+			Matrix::Identity 
+			* Matrix::CreateScale(this->scale) 
+			* transToLocal
+			* Matrix::CreateFromYawPitchRoll(this->rot.y, this->rot.x, this->rot.z)
+			* transToWorld;
+	}
+
+	Matrix vecRotationMatrix = Matrix::CreateFromYawPitchRoll(this->rot.y, 0.0f, 0.0f);
+	this->vec_forward = Vector3::Transform(this->DEFAULT_FORWARD_VECTOR, vecRotationMatrix);\
+	this->vec_left = Vector3::Transform(this->DEFAULT_LEFT_VECTOR, vecRotationMatrix);
 }
 
-const XMVECTOR& GameObject::GetPositionVector() const
-{
-	return this->posVector;
-}
-
-const DirectX::SimpleMath::Vector3& GameObject::GetPositionFloat3() const
+const Vector3& GameObject::GetPosition() const
 {
 	return this->pos;
 }
 
-const XMVECTOR& GameObject::GetRotationVector() const
-{
-	return this->rotVector;
-}
-
-const DirectX::SimpleMath::Vector3& GameObject::GetRotationFloat3() const
+const Vector3& GameObject::GetRotation() const
 {
 	return this->rot;
 }
 
-void GameObject::SetPosition(const XMVECTOR& pos)
-{
-	XMStoreFloat3(&this->pos, pos);
-	this->posVector = pos;
-	this->UpdateWorldMatrix();
-}
 
-void GameObject::SetPosition(const DirectX::SimpleMath::Vector3& pos)
+void GameObject::SetPosition(const Vector3& pos)
 {
 	this->pos = pos;
-	this->posVector = XMLoadFloat3(&this->pos);
 	this->UpdateWorldMatrix();
 }
 
 void GameObject::SetPosition(float x, float y, float z)
 {
-	this->pos = DirectX::SimpleMath::Vector3(x, y, z);
-	this->posVector = XMLoadFloat3(&this->pos);
+	this->pos = Vector3(x, y, z);
 	this->UpdateWorldMatrix();
 }
 
-void GameObject::AdjustPosition(const XMVECTOR& pos)
-{
-	this->posVector += pos;
-	XMStoreFloat3(&this->pos, this->posVector);
-	this->UpdateWorldMatrix();
-}
 
-void GameObject::AdjustPosition(const DirectX::SimpleMath::Vector3& pos)
+void GameObject::AdjustPosition(const Vector3& pos)
 {
-	this->pos.x += pos.y;
+	this->pos.x += pos.x;
 	this->pos.y += pos.y;
 	this->pos.z += pos.z;
-	this->posVector = XMLoadFloat3(&this->pos);
 	this->UpdateWorldMatrix();
 }
 
@@ -100,44 +95,41 @@ void GameObject::AdjustPosition(float x, float y, float z)
 	this->pos.x += x;
 	this->pos.y += y;
 	this->pos.z += z;
-	this->posVector = XMLoadFloat3(&this->pos);
 	this->UpdateWorldMatrix();
 }
 
-void GameObject::SetRotation(const XMVECTOR& rot)
-{
-	this->rotVector = rot;
-	XMStoreFloat3(&this->rot, rot);
-	this->UpdateWorldMatrix();
-}
-
-void GameObject::SetRotation(const DirectX::SimpleMath::Vector3& rot)
+void GameObject::SetRotation(const Vector3& rot)
 {
 	this->rot = rot;
-	this->rotVector = XMLoadFloat3(&this->rot);
 	this->UpdateWorldMatrix();
 }
 
 void GameObject::SetRotation(float x, float y, float z)
 {
-	this->rot = DirectX::SimpleMath::Vector3(x, y, z);
-	this->rotVector = XMLoadFloat3(&this->rot);
+	this->rot = Vector3(x, y, z);
 	this->UpdateWorldMatrix();
 }
 
-void GameObject::AdjustRotation(const XMVECTOR& rot)
+void GameObject::SetScale(const Vector3& scale, float size = 1)
 {
-	this->rotVector += rot;
-	XMStoreFloat3(&this->rot, this->rotVector);
+	this->scale = scale;
+	this->size = size;
 	this->UpdateWorldMatrix();
 }
 
-void GameObject::AdjustRotation(const DirectX::SimpleMath::Vector3& rot)
+void GameObject::SetScale(float x, float y, float z, float size = 1)
+{
+	this->scale = Vector3(x, y, z);
+	this->size = size;
+	this->UpdateWorldMatrix();
+}
+
+
+void GameObject::AdjustRotation(const Vector3& rot)
 {
 	this->rot.x += rot.x;
 	this->rot.y += rot.y;
 	this->rot.z += rot.z;
-	this->rotVector = XMLoadFloat3(&this->rot);
 	this->UpdateWorldMatrix();
 }
 
@@ -146,27 +138,55 @@ void GameObject::AdjustRotation(float x, float y, float z)
 	this->rot.x += x;
 	this->rot.y += y;
 	this->rot.z += z;
-	this->rotVector = XMLoadFloat3(&this->rot);
 	this->UpdateWorldMatrix();
 }
 
+const Vector3 GameObject::GetMaxDirection()
+{
+	return MulVector3(this->model.GetMaxDirections(), this->scale) + this->pos;
+}
 
-const XMVECTOR& GameObject::GetForwardVector()
+const Vector3 GameObject::GeMinDirection()
+{
+	return MulVector3(this->model.GetMinDirections(), this->scale) + this->pos;
+}
+
+const bool GameObject::CheckColision(GameObject& gameObject)
+{
+	auto maxDirOwn = this->GetMaxDirection();
+	auto minDirOwn = this->GeMinDirection();
+	auto maxDirTo = gameObject.GetMaxDirection();
+	auto minDirTo = gameObject.GeMinDirection();
+	if (maxDirTo.x >= minDirOwn.x
+		&& maxDirTo.z >= minDirOwn.z
+		&& minDirTo.x <= maxDirOwn.x
+		&& minDirTo.z <= maxDirOwn.z)
+	{
+		this->mainObjectR =  this->pos - gameObject.pos;
+		return true;
+	};
+	return false;
+}
+
+
+
+
+const Vector3& GameObject::GetForwardVector()
 {
 	return this->vec_forward;
 }
 
-const XMVECTOR& GameObject::GetRightVector()
-{
-	return this->vec_right;
-}
-
-const XMVECTOR& GameObject::GetBackwardVector()
-{
-	return this->vec_backward;
-}
-
-const XMVECTOR& GameObject::GetLeftVector()
+const Vector3& GameObject::GetLeftVector()
 {
 	return this->vec_left;
+}
+
+void GameObject::AttachToMain(GameObject* mainObject)
+{
+	this->mainGameObject = mainObject;
+}
+
+bool GameObject::IsAttachedToMain()
+{
+	return this->mainGameObject != nullptr;
 }

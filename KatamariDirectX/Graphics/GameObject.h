@@ -1,6 +1,8 @@
 #pragma once
 #include "Model.h"
 
+using namespace DirectX::SimpleMath;
+
 class GameObject
 {
 public:
@@ -10,48 +12,49 @@ public:
 		ID3D11DeviceContext* deviceContext,
 		ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader
 	);
-	void Draw(const DirectX::SimpleMath::Matrix& viewProjectionMatrix);
-	const DirectX::SimpleMath::Matrix& GetWorldMatrix() const;
-	const XMVECTOR& GetPositionVector() const;
-	const DirectX::SimpleMath::Vector3& GetPositionFloat3() const;
-	const XMVECTOR& GetRotationVector() const;
-	const DirectX::SimpleMath::Vector3& GetRotationFloat3() const;
+	void Draw(const Matrix& viewProjectionMatrix);
+	const Matrix& GetWorldMatrix() const;
+	const Vector3& GetPosition() const;
+	const Vector3& GetRotation() const;
 
-	void SetPosition(const XMVECTOR& pos);
-	void SetPosition(const DirectX::SimpleMath::Vector3& pos);
+	void SetPosition(const Vector3& pos);
 	void SetPosition(float x, float y, float z);
-	void AdjustPosition(const XMVECTOR& pos);
-	void AdjustPosition(const DirectX::SimpleMath::Vector3& pos);
+	void AdjustPosition(const Vector3& pos);
 	void AdjustPosition(float x, float y, float z);
-	void SetRotation(const XMVECTOR& rot);
-	void SetRotation(const DirectX::SimpleMath::Vector3& rot);
+	void SetRotation(const Vector3& rot);
 	void SetRotation(float x, float y, float z);
-	void AdjustRotation(const XMVECTOR& rot);
-	void AdjustRotation(const DirectX::SimpleMath::Vector3& rot);
+	void SetScale(const Vector3& rot, float size = 1);
+	void SetScale(float x, float y, float z, float size = 1);
+	void AdjustRotation(const Vector3& rot);
 	void AdjustRotation(float x, float y, float z);
-	const XMVECTOR& GetForwardVector();
-	const XMVECTOR& GetRightVector();
-	const XMVECTOR& GetBackwardVector();
-	const XMVECTOR& GetLeftVector();
-private:
+	const Vector3 GetMaxDirection();
+	const Vector3 GeMinDirection();
+	const bool CheckColision(GameObject& gameObject);
+	const Vector3& GetForwardVector();
+	const Vector3& GetLeftVector();
+	void AttachToMain(GameObject* mainObject);
+	bool IsAttachedToMain();
+
 	Model model;
+	float rotationSpeed = -0.005f;
+	float size = 1;
+private:
 	void UpdateWorldMatrix();
 
-	DirectX::SimpleMath::Matrix worldMatrix = XMMatrixIdentity();
+	Matrix worldMatrix = XMMatrixIdentity();
+	GameObject* mainGameObject = nullptr;
+	Vector3 mainObjectR;
 
-	XMVECTOR posVector;
-	XMVECTOR rotVector;
-	DirectX::SimpleMath::Vector3 pos;
-	DirectX::SimpleMath::Vector3 rot;
+	Vector3 pos;
+	Vector3 rot;
+	Vector3 scale;
 
-	const XMVECTOR DEFAULT_FORWARD_VECTOR = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-	const XMVECTOR DEFAULT_UP_VECTOR = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-	const XMVECTOR DEFAULT_BACKWARD_VECTOR = XMVectorSet(0.0f, 0.0f, -1.0f, 0.0f);
-	const XMVECTOR DEFAULT_LEFT_VECTOR = XMVectorSet(-1.0f, 0.0f, 0.0f, 0.0f);
-	const XMVECTOR DEFAULT_RIGHT_VECTOR = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+	const Vector3 DEFAULT_FORWARD_VECTOR = Vector3(0.0f, 0.0f, 1.0f);
+	const Vector3 DEFAULT_UP_VECTOR = Vector3(0.0f, 1.0f, 0.0f);
+	const Vector3 DEFAULT_LEFT_VECTOR = Vector3(-1.0f, 0.0f, 0.0f);
 
-	XMVECTOR vec_forward;
-	XMVECTOR vec_left;
-	XMVECTOR vec_right;
-	XMVECTOR vec_backward;
+	Vector3 vec_forward;
+	Vector3 vec_left;
+
+
 };

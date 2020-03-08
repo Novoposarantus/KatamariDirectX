@@ -1,6 +1,6 @@
 cbuffer cBuffer : register(b0)
 {
-	float4x4 mat;
+	row_major float4x4 mat;
 };
 
 struct VS_INPUT
