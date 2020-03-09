@@ -8,6 +8,9 @@
 #include "..\\Timer.h"
 #include "./Meshes/MainPlane.h"
 #include "GameObject.h"
+#include "ImGui/imgui.h"
+#include "ImGui/imgui_impl_win32.h"
+#include "ImGui/imgui_impl_dx11.h"
 
 class Graphics
 {
@@ -33,7 +36,7 @@ private:
 	VertexShader vertexshader;
 	PixelShader pixelshader;
 	ConstantBuffer<CB_VS_VertexShader> cb_vs_VertexShader;
-	ConstantBuffer<CB_PS_PixelShader> cb_ps_PixelShader;
+	ConstantBuffer<CB_PS_Light> cb_ps_Light;
 
 
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> depthStencilView;

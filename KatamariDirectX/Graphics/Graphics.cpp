@@ -22,14 +22,22 @@ bool Graphics::Initialize(HWND hwnd, int width, int height)
 	if (!InitializeScene())
 		return false;
 
-	//if (!mainPlane.Initialize(device))
-	//	return false;
+	//Setup ImGui
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	ImGui_ImplWin32_Init(hwnd);
+	ImGui_ImplDX11_Init(this->device.Get(), this->deviceContext.Get());
+	ImGui::StyleColorsDark();
 
 	return true;
 }
 
 void Graphics::RenderFrame()
 {
+	this->cb_ps_Light.ApplyChanges();
+	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_Light.GetAddressOf());
+
 	float bgcolor[] = { 0.0, 0.0f, 0.0f, 1.0f };
 	this->deviceContext->ClearRenderTargetView(this->renderTargetView.Get(), bgcolor);
 	this->deviceContext->ClearDepthStencilView(this->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
@@ -164,6 +172,22 @@ void Graphics::RenderFrame()
 	spriteBatch->End();
 #pragma endregion
 
+
+#pragma region ImGui
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+
+	ImGui::Begin("Light Controls");
+	ImGui::DragFloat3("Ambient Light Color", &this->cb_ps_Light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
+	ImGui::DragFloat("Ambient Light Strength", &this->cb_ps_Light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
+	ImGui::End();
+
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+
+#pragma endregion
 
 	this->swapchain->Present(1, NULL);
 }
@@ -356,8 +380,11 @@ bool Graphics::InitializeScene()
 		auto hr = cb_vs_VertexShader.Initialize(this->device.Get(), this->deviceContext.Get());
 		COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
 
-		hr = cb_ps_PixelShader.Initialize(this->device.Get(), this->deviceContext.Get());
+		hr = cb_ps_Light.Initialize(this->device.Get(), this->deviceContext.Get());
 		COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
+
+		this->cb_ps_Light.data.ambientLightColor = Vector3(1.0f, 1.0f, 1.0f);
+		this->cb_ps_Light.data.ambientLightStrength = 1.0f;
 
 		//Initialize model(s)
 		if (!mainObject.Initialize("Data\\Objects\\Samples\\orange_embeddedtexture.fbx",this->device.Get(), this->deviceContext.Get(), this->cb_vs_VertexShader))

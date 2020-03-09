@@ -1,6 +1,7 @@
-cbuffer alphaBuffer : register(b0)
+cbuffer lightBuffer : register(b0)
 {
-    float alpha;
+    float3 ambientLightColor;
+    float ambientLightStrength;
 }
 
 struct PS_INPUT
@@ -12,8 +13,19 @@ struct PS_INPUT
 Texture2D objTexture : TEXTURE : register(t0);
 SamplerState objSamplerState : SAMPLER : register(s0);
 
-float4 main(PS_INPUT input) : SV_TARGET
+float4 main(PS_INPUT input) : SV_Target
 {
-    float3 pixelColor = objTexture.Sample(objSamplerState, input.inTexCoord);
-    return float4(pixelColor, alpha);
+    float3 sampleColor = objTexture.Sample(objSamplerState, input.inTexCoord);
+    
+    float3 ambientLight = ambientLightColor * ambientLightStrength;
+    
+    float3 finalColor = sampleColor * ambientLight;
+    return float4(finalColor, 1.0f);
 }
+
+//Blending
+//float4 main(PS_INPUT input) : SV_TARGET
+//{
+//    float3 pixelColor = objTexture.Sample(objSamplerState, input.inTexCoord);
+//    return float4(pixelColor, alpha);
+//}
