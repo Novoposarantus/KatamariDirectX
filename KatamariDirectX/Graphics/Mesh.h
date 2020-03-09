@@ -16,13 +16,16 @@ public:
 		ID3D11DeviceContext* deviceContext, 
 		std::vector<Vertex>& vertices, 
 		std::vector<DWORD>& indices,
-		std::vector<Texture> textures
+		std::vector<Texture> textures,
+		DirectX::SimpleMath::Matrix transformMatrix
 	);
 	Mesh(const Mesh& mesh);
 	void Draw();
+	const DirectX::SimpleMath::Matrix& GetTransformMatrix();
 private:
 	VertexBuffer<Vertex> vertexbuffer;
 	IndexBuffer indexbuffer;
 	ID3D11DeviceContext* deviceContext;
 	std::vector<Texture> textures;
+	DirectX::SimpleMath::Matrix transformMatrix;
 };

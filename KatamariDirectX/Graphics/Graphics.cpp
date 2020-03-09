@@ -362,7 +362,8 @@ bool Graphics::InitializeScene()
 		//Initialize model(s)
 		if (!mainObject.Initialize("Data\\Objects\\Samples\\orange_embeddedtexture.fbx",this->device.Get(), this->deviceContext.Get(), this->cb_vs_VertexShader))
 			return false;
-		float mainStartSize = 0.5f;
+		//float mainStartSize = 0.5f;
+		float mainStartSize = 1;
 		mainObject.SetScale(1, 1, 1, mainStartSize);
 		this->mainObjectSize = mainStartSize;
 
