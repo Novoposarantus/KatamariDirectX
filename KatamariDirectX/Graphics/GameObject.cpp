@@ -13,6 +13,7 @@ bool GameObject::Initialize(
 	this->SetPosition(0.0f, 0.0f, 0.0f);
 	this->SetRotation(0.0f, 0.0f, 0.0f);
 	this->SetScale(1.0f, 1.0f, 1.0f, 1.0f);
+	this->rotMatirx = Matrix::CreateFromYawPitchRoll(rot.x, rot.y, rot.z);
 	this->UpdateWorldMatrix();
 	return true;
 }
@@ -35,8 +36,7 @@ void GameObject::UpdateWorldMatrix()
 {
 	if (!this->IsAttachedToMain())
 	{
-		this->worldMatrix = Matrix::CreateFromYawPitchRoll(this->rot.y, this->rot.x, this->rot.z)
-			* Matrix::CreateScale(this->scale * size);
+		this->worldMatrix = Matrix::CreateScale(this->scale * size) * rotMatirx;//Matrix::CreateFromYawPitchRoll(this->rot.y, this->rot.x, this->rot.z);
 		this->worldMatrix.Translation(Vector3(this->pos.x, this->pos.y, this->pos.z));
 	}
 	else 
@@ -44,12 +44,12 @@ void GameObject::UpdateWorldMatrix()
 		auto transToWorld = Matrix::Identity;
 		transToWorld.Translation(this->mainGameObject->GetPosition());
 		auto transToLocal = Matrix::Identity;
-		transToLocal.Translation(this->mainObjectR);	
+		transToLocal.Translation(this->pos);	
 		this->worldMatrix = 
 			Matrix::Identity 
 			* Matrix::CreateScale(this->scale * size) 
 			* transToLocal
-			* Matrix::CreateFromYawPitchRoll(this->rot.y, this->rot.x, this->rot.z)
+			* this->mainGameObject->rotMatirx
 			* transToWorld;
 	}
 
@@ -124,6 +124,12 @@ void GameObject::SetScale(float x, float y, float z, float size)
 	this->UpdateWorldMatrix();
 }
 
+void GameObject::Rotate(Vector3 rot, float dt)
+{
+	rotMatirx *= Matrix::CreateFromAxisAngle(rot, rotationSpeed * dt);
+	this->UpdateWorldMatrix();
+}
+
 
 void GameObject::AdjustRotation(const Vector3& rot)
 {
@@ -190,9 +196,6 @@ const bool GameObject::CanAttach(float curSize)
 	return curSize >= this->size;
 }
 
-
-
-
 const Vector3& GameObject::GetForwardVector()
 {
 	return this->vec_forward;
@@ -205,6 +208,9 @@ const Vector3& GameObject::GetLeftVector()
 
 void GameObject::AttachToMain(GameObject* mainObject)
 {
+	auto matrix =  mainObject->GetWorldMatrix().Invert();
+	auto vector = Vector3::Transform(this->pos, matrix);
+	this->pos = vector;
 	this->mainGameObject = mainObject;
 }
 

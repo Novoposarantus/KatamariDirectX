@@ -25,6 +25,7 @@ public:
 	void SetRotation(float x, float y, float z);
 	void SetScale(const Vector3& rot, float size = 1);
 	void SetScale(float x, float y, float z, float size = 1);
+	void Rotate(Vector3 rot, float dt);
 	void AdjustRotation(const Vector3& rot);
 	void AdjustRotation(float x, float y, float z);
 	const Vector3 GetMaxDirection();
@@ -38,8 +39,9 @@ public:
 	bool IsAttachedToMain();
 
 	Model model;
-	float rotationSpeed = -0.005f;
+	float rotationSpeed = 0.005f;
 	float size = 1;
+	Matrix rotMatirx;
 private:
 	void UpdateWorldMatrix();
 
