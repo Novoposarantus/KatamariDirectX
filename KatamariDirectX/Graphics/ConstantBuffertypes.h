@@ -4,7 +4,8 @@
 
 struct CB_VS_VertexShader
 {
-	DirectX::SimpleMath::Matrix mat;
+	DirectX::SimpleMath::Matrix wvpMatrix;
+	DirectX::SimpleMath::Matrix worldMatrix;
 };
 
 struct CB_PS_Alpha
