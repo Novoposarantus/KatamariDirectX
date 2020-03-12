@@ -64,6 +64,13 @@ bool Model::LoadModel(const std::string& filePath)
 	if (pScene == nullptr)
 		return false;
 
+	this->xPlus = -std::numeric_limits<float>::max();
+	this->xMinus = std::numeric_limits<float>::max();
+	this->yPlus = -std::numeric_limits<float>::max();
+	this->yMinus = std::numeric_limits<float>::max();
+	this->zPlus = -std::numeric_limits<float>::max();
+	this->zMinus = std::numeric_limits<float>::max();
+
 	this->ProcessNode(pScene->mRootNode, pScene);
 	return true;
 }
@@ -87,12 +94,6 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 	// Data to fill
 	std::vector<Vertex> vertices;
 	std::vector<DWORD> indices;
-	this->xPlus = mesh->mVertices[0].x;
-	this->xMinus = mesh->mVertices[0].x;
-	this->yPlus = mesh->mVertices[0].y;
-	this->yMinus = mesh->mVertices[0].y;
-	this->zPlus = mesh->mVertices[0].z;
-	this->zMinus = mesh->mVertices[0].z;
 
 	//Get vertices
 	for (UINT i = 0; i < mesh->mNumVertices; i++)

@@ -96,6 +96,28 @@ void Graphics::RenderFrame()
 		DirectX::XMFLOAT2(0, 0),
 		DirectX::XMFLOAT2(1.0f, 1.0f)
 	);
+	auto mainMaxDir = this->mainObject.GetMaxDirection();
+	auto strMainMaxDir = "X: " + std::to_string(mainMaxDir.x) + "Y: " + std::to_string(mainMaxDir.y) + "Z: " + std::to_string(mainMaxDir.z);
+	spriteFont->DrawString(
+		spriteBatch.get(),
+		strMainMaxDir.c_str(),
+		DirectX::XMFLOAT2(0, 50),
+		DirectX::Colors::White,
+		0.0f,
+		DirectX::XMFLOAT2(0, 0),
+		DirectX::XMFLOAT2(1.0f, 1.0f)
+	);
+	mainMaxDir = this->gameObjects[0].GetMaxDirection();
+	strMainMaxDir = "X: " + std::to_string(mainMaxDir.x) + "Y: " + std::to_string(mainMaxDir.y) + "Z: " + std::to_string(mainMaxDir.z);
+	spriteFont->DrawString(
+		spriteBatch.get(),
+		strMainMaxDir.c_str(),
+		DirectX::XMFLOAT2(0, 75),
+		DirectX::Colors::White,
+		0.0f,
+		DirectX::XMFLOAT2(0, 0),
+		DirectX::XMFLOAT2(1.0f, 1.0f)
+	);
 
 	spriteBatch->End();
 #pragma endregion
@@ -106,10 +128,10 @@ void Graphics::RenderFrame()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
-	ImGui::Begin("Light Controls");
-	ImGui::DragFloat3("Ambient Light Color", &this->cb_ps_Light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
-	ImGui::DragFloat("Ambient Light Strength", &this->cb_ps_Light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
-	ImGui::End();
+	//ImGui::Begin("Light Controls");
+	//ImGui::DragFloat3("Ambient Light Color", &this->cb_ps_Light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
+	//ImGui::DragFloat("Ambient Light Strength", &this->cb_ps_Light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
+	//ImGui::End();
 
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());

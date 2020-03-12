@@ -16,7 +16,6 @@ public:
 	const DirectX::SimpleMath::Vector3& GetMinDirections();
 	const DirectX::SimpleMath::Vector3& GetMaxDirections();
 
-
 private:
 	std::vector<Mesh> meshes;
 	bool LoadModel(const std::string& filePath);
@@ -27,12 +26,12 @@ private:
 	int GetTextureIndex(aiString* pStr);
 
 
-	float xPlus = 0;
-	float yPlus = 0;
-	float zPlus = 0;
-	float xMinus = 0;
-	float yMinus = 0;
-	float zMinus = 0;
+	float xPlus;
+	float yPlus;
+	float zPlus;
+	float xMinus;
+	float yMinus;
+	float zMinus;
 
 	ID3D11Device* device = nullptr;
 	ID3D11DeviceContext* deviceContext = nullptr;

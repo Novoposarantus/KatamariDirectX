@@ -36,7 +36,7 @@ void GameObject::UpdateWorldMatrix()
 {
 	if (!this->IsAttachedToMain())
 	{
-		this->worldMatrix = Matrix::CreateScale(this->scale * size) * rotMatirx;//Matrix::CreateFromYawPitchRoll(this->rot.y, this->rot.x, this->rot.z);
+		this->worldMatrix = Matrix::CreateScale(this->scale * size) * rotMatirx;
 		this->worldMatrix.Translation(Vector3(this->pos.x, this->pos.y, this->pos.z));
 	}
 	else 
@@ -168,7 +168,6 @@ const bool GameObject::CheckColision(GameObject& gameObject)
 		&& minDirTo.x <= maxDirOwn.x
 		&& minDirTo.z <= maxDirOwn.z)
 	{
-		this->mainObjectR =  this->pos - gameObject.pos;
 		return true;
 	};
 	return false;
@@ -185,7 +184,6 @@ const bool GameObject::CheckFutureColision(GameObject& gameObject, Vector3 adjus
 		&& minDirTo.x <= maxDirOwn.x
 		&& minDirTo.z <= maxDirOwn.z)
 	{
-		this->mainObjectR = this->pos - gameObject.pos;
 		return true;
 	};
 	return false;
@@ -193,6 +191,7 @@ const bool GameObject::CheckFutureColision(GameObject& gameObject, Vector3 adjus
 
 const bool GameObject::CanAttach(float curSize)
 {
+	return true;
 	return curSize >= this->size;
 }
 
