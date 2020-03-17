@@ -62,7 +62,7 @@ void Graphics::RenderFrame()
 			 && this->gameObjects[i].CheckColision(this->mainObject))
 		{
 			this->gameObjects[i].AttachToMain(&this->mainObject);
-			this->mainObjectSize += this->gameObjects[i].size / 2;
+			this->mainObjectSize += this->gameObjects[i].GetSize() / 2;
 		}
 		this->gameObjects[i].Draw(camera.GetViewMatrix()* camera.GetProjectionMatrix());
 	}
@@ -318,12 +318,13 @@ bool Graphics::InitializeScene()
 		if (!mainObject.Initialize("Data\\Objects\\Samples\\orange_embeddedtexture.fbx",this->device.Get(), this->deviceContext.Get(), this->cb_vs_VertexShader))
 			return false;
 		float mainStartSize = 0.5f;
-		mainObject.SetScale(1, 1, 1, mainStartSize);
+		mainObject.SetScale(1, 1, 1);
+		mainObject.SetSize(mainStartSize);
 		this->mainObjectSize = mainStartSize;
 
 		for (int i = 0; i < 10; ++i)
 		{
-			GameObject gameObject;
+			RenderableGameObject gameObject;
 			gameObject.Initialize(
 				"Data\\Objects\\Samples\\orange_embeddedtexture.fbx", 
 				this->device.Get(), 
@@ -334,14 +335,15 @@ bool Graphics::InitializeScene()
 			float z = rand() % 200 - 100; 
 			float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (0.7f - 0.2f)));
 			gameObject.SetPosition(x, 0, z);
-			gameObject.SetScale(1, 1, 1, r);
+			gameObject.SetScale(1, 1, 1);
+			gameObject.SetSize(r);
 			gameObjects.push_back(gameObject);
 		}
 
 		const float skullScaleMod = 0.05f;
 		for (int i = 0; i < 10; ++i)
 		{
-			GameObject gameObject;
+			RenderableGameObject gameObject;
 			gameObject.Initialize(
 				"Data\\Objects\\Skull\\12140_Skull_v3_L2.obj",
 				this->device.Get(),
@@ -353,7 +355,8 @@ bool Graphics::InitializeScene()
 			float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.0f - 0.2f)));
 			gameObject.SetPosition(x, 0, z);
 			gameObject.SetRotation(90, 0, 0);
-			gameObject.SetScale(skullScaleMod, skullScaleMod, skullScaleMod , r);
+			gameObject.SetScale(skullScaleMod, skullScaleMod, skullScaleMod);
+			gameObject.SetSize(r);
 			gameObjects.push_back(gameObject);
 		}
 
@@ -361,7 +364,7 @@ bool Graphics::InitializeScene()
 
 		for (int i = 0; i < 10; ++i)
 		{
-			GameObject gameObject;
+			RenderableGameObject gameObject;
 			gameObject.Initialize(
 				"Data\\Objects\\nanosuit\\nanosuit.obj",
 				this->device.Get(),
@@ -372,7 +375,8 @@ bool Graphics::InitializeScene()
 			float z = rand() % 200 - 100;
 			float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (3.0f - 0.2f)));
 			gameObject.SetPosition(x, 0, z);
-			gameObject.SetScale(nanusuitScaleMod, nanusuitScaleMod, nanusuitScaleMod, r);
+			gameObject.SetScale(nanusuitScaleMod, nanusuitScaleMod, nanusuitScaleMod);
+			gameObject.SetSize(r);
 			gameObjects.push_back(gameObject);
 		}
 
@@ -380,7 +384,7 @@ bool Graphics::InitializeScene()
 
 		for (int i = 0; i < 1; ++i)
 		{
-			GameObject gameObject;
+			RenderableGameObject gameObject;
 			gameObject.Initialize(
 				"Data\\Objects\\Alocasia\\01Alocasia_obj.obj",
 				this->device.Get(),
@@ -391,7 +395,8 @@ bool Graphics::InitializeScene()
 			float z = rand() % 200 - 100;
 			float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (2.0f - 0.2f)));
 			gameObject.SetPosition(x, 0, z);
-			gameObject.SetScale(alocasiaScaleMod, alocasiaScaleMod, alocasiaScaleMod, r);
+			gameObject.SetScale(alocasiaScaleMod, alocasiaScaleMod, alocasiaScaleMod);
+			gameObject.SetSize(r);
 			gameObjects.push_back(gameObject);
 		}
 

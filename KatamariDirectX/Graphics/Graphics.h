@@ -7,7 +7,7 @@
 #include "Camera.h"
 #include "..\\Timer.h"
 #include "./Meshes/MainPlane.h"
-#include "GameObject.h"
+#include "RenderableGameObject.h"
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_win32.h"
 #include "ImGui/imgui_impl_dx11.h"
@@ -18,8 +18,8 @@ public:
 	bool Initialize(HWND hwnd, int width, int height);
 	void RenderFrame();
 	Camera camera;
-	std::vector<GameObject> gameObjects;
-	GameObject mainObject;
+	std::vector<RenderableGameObject> gameObjects;
+	RenderableGameObject mainObject;
 	float mainObjectSize = 1;
 	MainPlane mainPlane;
 

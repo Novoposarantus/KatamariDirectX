@@ -9,7 +9,7 @@ Camera::Camera()
 	this->UpdateViewMatrix();
 }
 
-void Camera::SetParent(GameObject* mainGameObject)
+void Camera::SetParent(RenderableGameObject* mainGameObject)
 {
 	this->mainGameObject = mainGameObject;
 }

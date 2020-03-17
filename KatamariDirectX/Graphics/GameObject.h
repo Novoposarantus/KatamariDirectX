@@ -12,7 +12,6 @@ public:
 		ID3D11DeviceContext* deviceContext,
 		ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader
 	);
-	void Draw(const Matrix& viewProjectionMatrix);
 	const Matrix& GetWorldMatrix() const;
 	const Vector3& GetPosition() const;
 	const Vector3& GetRotation() const;
@@ -23,31 +22,19 @@ public:
 	void AdjustPosition(float x, float y, float z);
 	void SetRotation(const Vector3& rot);
 	void SetRotation(float x, float y, float z);
-	void SetScale(const Vector3& rot, float size = 1);
-	void SetScale(float x, float y, float z, float size = 1);
-	void Rotate(Vector3 rot, float dt);
+	void SetScale(const Vector3& rot);
+	void SetScale(float x, float y, float z);
 	void AdjustRotation(const Vector3& rot);
 	void AdjustRotation(float x, float y, float z);
-	const Vector3 GetMaxDirection();
-	const Vector3 GeMinDirection();
-	const bool CheckColision(GameObject& gameObject);
-	const bool CheckFutureColision(GameObject& gameObject, Vector3 adjustPosition);
-	const bool CanAttach(float curSize);
-	const Vector3& GetForwardVector();
-	const Vector3& GetLeftVector();
-	void AttachToMain(GameObject* mainObject);
-	bool IsAttachedToMain();
+	const Vector3& GetForwardVector(bool omitY);
+	const Vector3& GetLeftVector(bool omitY);
 
 	Model model;
-	float rotationSpeed = 0.005f;
-	float size = 1;
-	Matrix rotMatirx;
-private:
-	void UpdateWorldMatrix();
+protected:
+	virtual void UpdateWorldMatrix();
+	void UpdateDirectionVectors();
 
-	Matrix worldMatrix = XMMatrixIdentity();
-	GameObject* mainGameObject = nullptr;
-	Vector3 mainObjectR;
+	Matrix worldMatrix = Matrix::Identity;
 
 	Vector3 pos;
 	Vector3 rot;
@@ -61,4 +48,6 @@ private:
 	Vector3 vec_left;
 
 
+	Vector3 vec_forward_noY;
+	Vector3 vec_left_noY;
 };

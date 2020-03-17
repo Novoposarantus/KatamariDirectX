@@ -1,14 +1,14 @@
 #pragma once
 #include <DirectXMath.h>
 
-#include "GameObject.h"
+#include "RenderableGameObject.h"
 using namespace DirectX::SimpleMath;
 
 class Camera
 {
 public:
 	Camera();
-	void SetParent(GameObject* mainGameObject);
+	void SetParent(RenderableGameObject* mainGameObject);
 	const Matrix& GetViewMatrix() const;
 	void SetProjectionValues(float fovDegrees, float aspectRatio, float nearZ, float farZ);
 	const Matrix& GetProjectionMatrix() const;
@@ -28,7 +28,7 @@ public:
 	float yaw = 0.0f;
 
 private:
-	GameObject* mainGameObject;
+	RenderableGameObject* mainGameObject;
 
 	Matrix viewMatrix;
 	Matrix projectionMatrix;

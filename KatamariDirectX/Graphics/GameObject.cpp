@@ -1,5 +1,4 @@
 #include "GameObject.h"
-#include "..\\Math.h"
 
 bool GameObject::Initialize(
 	const std::string& filePath,
@@ -12,19 +11,9 @@ bool GameObject::Initialize(
 
 	this->SetPosition(0.0f, 0.0f, 0.0f);
 	this->SetRotation(0.0f, 0.0f, 0.0f);
-	this->SetScale(1.0f, 1.0f, 1.0f, 1.0f);
-	this->rotMatirx = Matrix::CreateFromYawPitchRoll(rot.x, rot.y, rot.z);
+	this->SetScale(1.0f, 1.0f, 1.0f);
 	this->UpdateWorldMatrix();
 	return true;
-}
-
-void GameObject::Draw(const Matrix& viewProjectionMatrix)
-{
-	if (this->IsAttachedToMain())
-	{
-		this->UpdateWorldMatrix();
-	}
-	model.Draw(this->worldMatrix, viewProjectionMatrix);
 }
 
 const Matrix& GameObject::GetWorldMatrix() const
@@ -34,28 +23,18 @@ const Matrix& GameObject::GetWorldMatrix() const
 
 void GameObject::UpdateWorldMatrix()
 {
-	if (!this->IsAttachedToMain())
-	{
-		this->worldMatrix = Matrix::CreateScale(this->scale * size) * rotMatirx;
-		this->worldMatrix.Translation(Vector3(this->pos.x, this->pos.y, this->pos.z));
-	}
-	else 
-	{
-		auto transToWorld = Matrix::Identity;
-		transToWorld.Translation(this->mainGameObject->GetPosition());
-		auto transToLocal = Matrix::Identity;
-		transToLocal.Translation(this->pos);	
-		this->worldMatrix = 
-			Matrix::Identity 
-			* Matrix::CreateScale(this->scale * size) 
-			* transToLocal
-			* this->mainGameObject->rotMatirx
-			* transToWorld;
-	}
+	assert("UpdateMatrix must be overridden." && 0);
+}
 
-	Matrix vecRotationMatrix = Matrix::CreateFromYawPitchRoll(this->rot.y, 0.0f, 0.0f);
-	this->vec_forward = Vector3::Transform(this->DEFAULT_FORWARD_VECTOR, vecRotationMatrix);\
+void GameObject::UpdateDirectionVectors()
+{
+	Matrix vecRotationMatrix = Matrix::CreateFromYawPitchRoll(this->rot.y, this->rot.x, 0.0f);
+	this->vec_forward = Vector3::Transform(this->DEFAULT_FORWARD_VECTOR, vecRotationMatrix);
 	this->vec_left = Vector3::Transform(this->DEFAULT_LEFT_VECTOR, vecRotationMatrix);
+
+	Matrix vecRotationMatrixNoY = Matrix::CreateFromYawPitchRoll(0.0f, this->rot.x, 0.0f);
+	this->vec_forward_noY = Vector3::Transform(this->DEFAULT_FORWARD_VECTOR, vecRotationMatrixNoY);
+	this->vec_left_noY = Vector3::Transform(this->DEFAULT_LEFT_VECTOR, vecRotationMatrixNoY);
 }
 
 const Vector3& GameObject::GetPosition() const
@@ -110,25 +89,18 @@ void GameObject::SetRotation(float x, float y, float z)
 	this->UpdateWorldMatrix();
 }
 
-void GameObject::SetScale(const Vector3& scale, float size)
+void GameObject::SetScale(const Vector3& scale)
 {
 	this->scale = scale;
-	this->size = size;
 	this->UpdateWorldMatrix();
 }
 
-void GameObject::SetScale(float x, float y, float z, float size)
+void GameObject::SetScale(float x, float y, float z)
 {
 	this->scale = Vector3(x, y, z);
-	this->size = size;
 	this->UpdateWorldMatrix();
 }
 
-void GameObject::Rotate(Vector3 rot, float dt)
-{
-	rotMatirx *= Matrix::CreateFromAxisAngle(rot, rotationSpeed * dt);
-	this->UpdateWorldMatrix();
-}
 
 
 void GameObject::AdjustRotation(const Vector3& rot)
@@ -147,73 +119,16 @@ void GameObject::AdjustRotation(float x, float y, float z)
 	this->UpdateWorldMatrix();
 }
 
-const Vector3 GameObject::GetMaxDirection()
+const Vector3& GameObject::GetForwardVector(bool omitY)
 {
-	return MulVector3(this->model.GetMaxDirections(), this->scale * this->size) + this->pos;
+	if (omitY)
+		return this->vec_forward_noY;
+	return  this->vec_forward;
 }
 
-const Vector3 GameObject::GeMinDirection()
+const Vector3& GameObject::GetLeftVector(bool omitY)
 {
-	return MulVector3(this->model.GetMinDirections(), this->scale * this->size) + this->pos;
-}
-
-const bool GameObject::CheckColision(GameObject& gameObject)
-{
-	auto maxDirOwn = this->GetMaxDirection();
-	auto minDirOwn = this->GeMinDirection();
-	auto maxDirTo = gameObject.GetMaxDirection();
-	auto minDirTo = gameObject.GeMinDirection();
-	if (maxDirTo.x >= minDirOwn.x
-		&& maxDirTo.z >= minDirOwn.z
-		&& minDirTo.x <= maxDirOwn.x
-		&& minDirTo.z <= maxDirOwn.z)
-	{
-		return true;
-	};
-	return false;
-}
-
-const bool GameObject::CheckFutureColision(GameObject& gameObject, Vector3 adjustPosition)
-{
-	auto maxDirOwn = this->GetMaxDirection();
-	auto minDirOwn = this->GeMinDirection();
-	auto maxDirTo = gameObject.GetMaxDirection() + adjustPosition;
-	auto minDirTo = gameObject.GeMinDirection() + adjustPosition;
-	if (maxDirTo.x >= minDirOwn.x
-		&& maxDirTo.z >= minDirOwn.z
-		&& minDirTo.x <= maxDirOwn.x
-		&& minDirTo.z <= maxDirOwn.z)
-	{
-		return true;
-	};
-	return false;
-}
-
-const bool GameObject::CanAttach(float curSize)
-{
-	return true;
-	return curSize >= this->size;
-}
-
-const Vector3& GameObject::GetForwardVector()
-{
-	return this->vec_forward;
-}
-
-const Vector3& GameObject::GetLeftVector()
-{
+	if (omitY)
+		return this->vec_left_noY;
 	return this->vec_left;
-}
-
-void GameObject::AttachToMain(GameObject* mainObject)
-{
-	auto matrix =  mainObject->GetWorldMatrix().Invert();
-	auto vector = Vector3::Transform(this->pos, matrix);
-	this->pos = vector;
-	this->mainGameObject = mainObject;
-}
-
-bool GameObject::IsAttachedToMain()
-{
-	return this->mainGameObject != nullptr;
 }
