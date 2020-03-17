@@ -11,6 +11,7 @@
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_win32.h"
 #include "ImGui/imgui_impl_dx11.h"
+#include "Light.h"
 
 class Graphics
 {
@@ -22,6 +23,7 @@ public:
 	RenderableGameObject mainObject;
 	float mainObjectSize = 1;
 	MainPlane mainPlane;
+	Light light;
 
 private:
 	bool InitializeDirectX(HWND hwnd, int width, int height);

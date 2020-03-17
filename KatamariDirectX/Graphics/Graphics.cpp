@@ -67,6 +67,8 @@ void Graphics::RenderFrame()
 		this->gameObjects[i].Draw(camera.GetViewMatrix()* camera.GetProjectionMatrix());
 	}
 
+	this->light.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
+
 #pragma region DrawText
 	static int fpsCounter = 0;
 	fpsCounter += 1;
@@ -403,6 +405,10 @@ bool Graphics::InitializeScene()
 		//Initialize model(s)
 		if (!mainPlane.Initialize(this->device.Get(), this->deviceContext.Get(), this->cb_vs_VertexShader))
 			return false;
+
+		if (!light.Initialize(this->device.Get(),this->deviceContext.Get(), this->cb_vs_VertexShader))
+			return false;
+
 		camera.SetProjectionValues(90.0f, static_cast<float>(windowWidth) / static_cast<float>(windowHeight), 0.1f, 10000.0f);
 	}
 	catch (COMException & exception)
