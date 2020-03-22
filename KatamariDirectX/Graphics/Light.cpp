@@ -10,7 +10,7 @@ bool Light::Initialize(
 
 	this->SetPosition(0.0f, 0.0f, 0.0f);
 	this->SetRotation(0.0f, 0.0f, 0.0f);
-	this->SetScale(0.01f, 0.01f, 0.01f);
+	this->SetScale(1.0f, 1.0f, 1.0f);
 	this->UpdateWorldMatrix();
 	return true;
 }

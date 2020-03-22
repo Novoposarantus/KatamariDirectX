@@ -21,16 +21,18 @@ public:
 	void AttachToMain(RenderableGameObject* mainObject);
 	bool IsAttachedToMain();
 	float GetSize();
+	void SetRotation(const Vector3& rot) override;
+	void SetRotation(float x, float y, float z) override;
 
 	void Draw(const Matrix& viewProjectionMatrix);
 
 protected:
+	void UpdateWorldMatrix() override;
 	float rotationSpeed = 0.005f;
 	float size = 1;
 	Model model;
-	Matrix rotMatirx;
+	Matrix rotMatrix;
 	RenderableGameObject* mainGameObject = nullptr;
 	Vector3 mainObjectR;
 
-	void UpdateWorldMatrix() override;
 };

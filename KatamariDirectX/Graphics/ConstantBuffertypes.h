@@ -21,4 +21,8 @@ struct CB_PS_Light
 	DirectX::SimpleMath::Vector3 dynamicLightColor;
 	float dynamicLightStrength;
 	DirectX::SimpleMath::Vector3 dynamicLightPosition;
+	float dynamicLightAttenuation_a;
+	DirectX::SimpleMath::Vector3 dynamicLightRotation;
+	float dynamicLightAttenuation_b;
+	float dynamicLightAttenuation_c;
 };

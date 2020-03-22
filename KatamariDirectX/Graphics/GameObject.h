@@ -13,19 +13,19 @@ public:
 		ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader
 	);
 	const Matrix& GetWorldMatrix() const;
-	const Vector3& GetPosition() const;
-	const Vector3& GetRotation() const;
+	virtual const Vector3& GetPosition() const;
+	virtual const Vector3& GetRotation() const;
 
-	void SetPosition(const Vector3& pos);
-	void SetPosition(float x, float y, float z);
-	void AdjustPosition(const Vector3& pos);
-	void AdjustPosition(float x, float y, float z);
-	void SetRotation(const Vector3& rot);
-	void SetRotation(float x, float y, float z);
-	void SetScale(const Vector3& rot);
-	void SetScale(float x, float y, float z);
-	void AdjustRotation(const Vector3& rot);
-	void AdjustRotation(float x, float y, float z);
+	virtual void SetPosition(const Vector3& pos);
+	virtual void SetPosition(float x, float y, float z);
+	virtual void AdjustPosition(const Vector3& pos);
+	virtual void AdjustPosition(float x, float y, float z);
+	virtual void SetRotation(const Vector3& rot);
+	virtual void SetRotation(float x, float y, float z);
+	virtual void SetScale(const Vector3& rot);
+	virtual void SetScale(float x, float y, float z);
+	virtual void AdjustRotation(const Vector3& rot);
+	virtual void AdjustRotation(float x, float y, float z);
 	const Vector3& GetForwardVector(bool omitY = false);
 	const Vector3& GetLeftVector(bool omitY = false);
 

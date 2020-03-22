@@ -13,7 +13,7 @@ bool RenderableGameObject::Initialize(
 
 	this->SetPosition(0.0f, 0.0f, 0.0f);
 	this->SetRotation(0.0f, 0.0f, 0.0f);
-	this->rotMatirx = Matrix::CreateFromYawPitchRoll(rot.x, rot.y, rot.z);
+	this->rotMatrix = Matrix::CreateFromYawPitchRoll(rot.x, rot.y, rot.z);
 	this->UpdateWorldMatrix();
 	return true;
 }
@@ -31,7 +31,7 @@ void RenderableGameObject::UpdateWorldMatrix()
 {
 	if (!this->IsAttachedToMain())
 	{
-		this->worldMatrix = Matrix::CreateScale(this->scale * size) * rotMatirx;
+		this->worldMatrix = Matrix::CreateScale(this->scale * size) * rotMatrix;
 		this->worldMatrix.Translation(Vector3(this->pos.x, this->pos.y, this->pos.z));
 	}
 	else
@@ -44,7 +44,7 @@ void RenderableGameObject::UpdateWorldMatrix()
 			Matrix::Identity
 			* Matrix::CreateScale(this->scale * size)
 			* transToLocal
-			* this->mainGameObject->rotMatirx
+			* this->mainGameObject->rotMatrix
 			* transToWorld;
 	}
 	this->UpdateDirectionVectors();
@@ -69,6 +69,17 @@ float RenderableGameObject::GetSize()
 	return this->size;
 }
 
+void RenderableGameObject::SetRotation(const Vector3& rot)
+{
+	this->rotMatrix = Matrix::CreateFromYawPitchRoll(rot.x, rot.y, rot.z);
+	this->UpdateWorldMatrix();
+}
+
+void RenderableGameObject::SetRotation(float x, float y, float z)
+{
+	this->rotMatrix = Matrix::CreateFromYawPitchRoll(x, y, z);
+	this->UpdateWorldMatrix();
+}
 
 const Vector3 RenderableGameObject::GetMaxDirection()
 {
@@ -126,6 +137,11 @@ const bool RenderableGameObject::CanAttach(float curSize)
 
 void RenderableGameObject::Rotate(Vector3 rot, float dt)
 {
-	rotMatirx *= Matrix::CreateFromAxisAngle(rot, rotationSpeed * dt);
+	rotMatrix *= Matrix::CreateFromAxisAngle(rot, rotationSpeed * dt);
+	Vector3 scale(0, 0, 0);
+	Quaternion rotQ(0, 0, 0, 0);
+	Vector3 trans(0, 0, 0);
+	rotMatrix.Decompose(scale, rotQ, trans);
+	this->rot = Vector3(rotQ.x, rotQ.y, rotQ.z);
 	this->UpdateWorldMatrix();
 }
