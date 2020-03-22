@@ -30,6 +30,7 @@ public:
 	const Vector3& GetLeftVector(bool omitY = false);
 
 	Model model;
+
 protected:
 	virtual void UpdateWorldMatrix();
 	void UpdateDirectionVectors();

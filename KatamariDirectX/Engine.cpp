@@ -45,11 +45,11 @@ void Engine::Update()
 		}
 	}
 
-	if (keyboard.KeyIsPressed(VK_UP))
+	if (keyboard.KeyIsPressed(VK_LEFT))
 	{
 		this->gfx.camera.Rotation(0, 10);
 	}
-	if (keyboard.KeyIsPressed(VK_DOWN))
+	if (keyboard.KeyIsPressed(VK_RIGHT))
 	{
 		this->gfx.camera.Rotation(0, -10);
 	}
@@ -76,14 +76,6 @@ void Engine::Update()
 	{
 		mainObjectPos += -this->gfx.camera.GetLeftVector(true) * this->gfx.camera.GetSpeed() * dt;
 		mainObjectRot += this->gfx.camera.GetForwardVector(true) * this->gfx.camera.GetSpeed();
-	}
-
-	if (keyboard.KeyIsPressed('C'))
-	{
-		Vector3 lightPosotion = this->gfx.camera.GetPosotion();
-		lightPosotion += this->gfx.camera.GetForwardVector() * 2;
-		this->gfx.light.SetPosition(lightPosotion);
-		this->gfx.light.SetRotation(this->gfx.camera.GetRotation());
 	}
 
 	if (mainObjectPos.x != 0 || mainObjectPos.y != 0 || mainObjectPos.z != 0)

@@ -116,6 +116,8 @@ void Graphics::RenderFrame()
 	ImGui::Begin("Light Controls");
 	ImGui::DragFloat3("Ambient Light Color", &this->cb_ps_Light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
 	ImGui::DragFloat("Ambient Light Strength", &this->cb_ps_Light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
+	ImGui::DragFloat3("Dynamic Light Color", &this->light.lightColor.x, 0.01f, 0.0f, 1.0f);
+	ImGui::DragFloat("Dynamic Light Strength", &this->light.lightStrength, 0.01f, 0.0f, 1.0f);
 	ImGui::End();
 
 	ImGui::Render();
@@ -331,7 +333,7 @@ bool Graphics::InitializeScene()
 		//Initialize model(s)
 		if (!mainObject.Initialize("Data\\Objects\\Samples\\orange_embeddedtexture.fbx",this->device.Get(), this->deviceContext.Get(), this->cb_vs_VertexShader))
 			return false;
-		const float orangeScale = 1.8;
+		const float orangeScale = 1.8f;
 		float mainStartSize = 0.5f;
 		mainObject.SetScale(orangeScale, orangeScale, orangeScale);
 		mainObject.SetSize(mainStartSize);
@@ -421,7 +423,6 @@ bool Graphics::InitializeScene()
 
 		if (!light.Initialize(this->device.Get(),this->deviceContext.Get(), this->cb_vs_VertexShader))
 			return false;
-		light.SetScale(3, 3, 3);
 
 		camera.SetProjectionValues(90.0f, static_cast<float>(windowWidth) / static_cast<float>(windowHeight), 0.1f, 10000.0f);
 	}

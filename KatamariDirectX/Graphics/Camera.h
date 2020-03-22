@@ -12,7 +12,7 @@ public:
 	const Matrix& GetViewMatrix() const;
 	void SetProjectionValues(float fovDegrees, float aspectRatio, float nearZ, float farZ);
 	const Matrix& GetProjectionMatrix() const;
-	Vector3 GetPosotion();
+	Vector3 GetPosition();
 	Vector3 GetRotation();
 	const float GetSpeed();
 	void Rotation(float x, float y);

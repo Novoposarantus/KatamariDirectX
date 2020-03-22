@@ -19,6 +19,6 @@ struct CB_PS_Light
 	float ambientLightStrength;
 
 	DirectX::SimpleMath::Vector3 dynamicLightColor;
-	DirectX::SimpleMath::Vector3 dynamicLightPosition;
 	float dynamicLightStrength;
+	DirectX::SimpleMath::Vector3 dynamicLightPosition;
 };

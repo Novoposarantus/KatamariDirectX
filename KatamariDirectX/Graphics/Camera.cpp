@@ -24,7 +24,7 @@ const Matrix& Camera::GetProjectionMatrix() const
 	return this->projectionMatrix;
 }
 
-Vector3 Camera::GetPosotion()
+Vector3 Camera::GetPosition()
 {
 	return this->pos;
 }
