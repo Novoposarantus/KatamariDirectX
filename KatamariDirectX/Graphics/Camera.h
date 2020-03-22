@@ -29,6 +29,7 @@ public:
 	float yaw = 0.0f;
 
 private:
+	void UpdateDirectionVectors();
 	RenderableGameObject* mainGameObject;
 
 	Matrix viewMatrix;

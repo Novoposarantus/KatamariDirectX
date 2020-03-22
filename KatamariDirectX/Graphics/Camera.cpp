@@ -59,14 +59,7 @@ void Camera::UpdateViewMatrix()
 		personPos, 
 	Vector3::Up);
 	
-	Matrix vecRotationMatrix = Matrix::CreateFromYawPitchRoll(this->yaw, this->pitch, 0.0f);
-	this->vec_forward = Vector3::Transform(Vector3::Forward, vecRotationMatrix);
-	this->vec_left = Vector3::Transform(Vector3::Left, vecRotationMatrix);
-
-
-	Matrix vecRotationMatrixNoPitch = Matrix::CreateFromYawPitchRoll(this->yaw, 0.0f, 0.0f);
-	this->vec_forward_no_pitch = Vector3::Transform(Vector3::Forward, vecRotationMatrixNoPitch);
-	this->vec_left_no_pitch = Vector3::Transform(Vector3::Left, vecRotationMatrixNoPitch);
+	this->UpdateDirectionVectors();
 }
 
 const Vector3& Camera::GetForwardVector(bool omitPitch)
@@ -81,6 +74,18 @@ const Vector3& Camera::GetLeftVector(bool omitPitch)
 	if (omitPitch)
 		return this->vec_left_no_pitch;
 	return this->vec_left;
+}
+
+void Camera::UpdateDirectionVectors()
+{
+	Matrix vecRotationMatrix = Matrix::CreateFromYawPitchRoll(this->yaw, this->pitch, 0.0f);
+	this->vec_forward = Vector3::Transform(Vector3::Forward, vecRotationMatrix);
+	this->vec_left = Vector3::Transform(Vector3::Left, vecRotationMatrix);
+
+
+	Matrix vecRotationMatrixNoPitch = Matrix::CreateFromYawPitchRoll(this->yaw, 0.0f, 0.0f);
+	this->vec_forward_no_pitch = Vector3::Transform(Vector3::Forward, vecRotationMatrixNoPitch);
+	this->vec_left_no_pitch = Vector3::Transform(Vector3::Left, vecRotationMatrixNoPitch);
 }
 
 const float Camera::GetSpeed() {
