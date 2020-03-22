@@ -35,6 +35,10 @@ bool Graphics::Initialize(HWND hwnd, int width, int height)
 
 void Graphics::RenderFrame()
 {
+	this->cb_ps_Light.data.dynamicLightColor = light.lightColor;
+	this->cb_ps_Light.data.dynamicLightStrength = light.lightStrength;
+	this->cb_ps_Light.data.dynamicLightPosition = light.GetPosition();
+
 	this->cb_ps_Light.ApplyChanges();
 	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_Light.GetAddressOf());
 

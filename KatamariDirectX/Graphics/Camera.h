@@ -12,6 +12,9 @@ public:
 	const Matrix& GetViewMatrix() const;
 	void SetProjectionValues(float fovDegrees, float aspectRatio, float nearZ, float farZ);
 	const Matrix& GetProjectionMatrix() const;
+	Vector3 GetPosotion();
+	Vector3 GetRotation();
+	const float GetSpeed();
 	void Rotation(float x, float y);
 	void UpdateViewMatrix();
 
@@ -43,6 +46,7 @@ private:
 	Vector3 vec_left;
 	Vector3 vec_right;
 	Vector3 vec_backward;
+	Vector3 pos;
 
 	float transSpeed = 0.01f;
 };
