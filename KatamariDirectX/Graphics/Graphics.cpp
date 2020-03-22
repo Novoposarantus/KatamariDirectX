@@ -71,6 +71,7 @@ void Graphics::RenderFrame()
 		this->gameObjects[i].Draw(camera.GetViewMatrix()* camera.GetProjectionMatrix());
 	}
 
+Ad	this->deviceContext->PSSetShader(pixelshader_nolight.GetShader(), NULL, 0);
 	this->light.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
 
 #pragma region DrawText
@@ -112,10 +113,10 @@ void Graphics::RenderFrame()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
-	//ImGui::Begin("Light Controls");
-	//ImGui::DragFloat3("Ambient Light Color", &this->cb_ps_Light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
-	//ImGui::DragFloat("Ambient Light Strength", &this->cb_ps_Light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
-	//ImGui::End();
+	ImGui::Begin("Light Controls");
+	ImGui::DragFloat3("Ambient Light Color", &this->cb_ps_Light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
+	ImGui::DragFloat("Ambient Light Strength", &this->cb_ps_Light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
+	ImGui::End();
 
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -285,6 +286,7 @@ bool Graphics::InitializeShaders()
 		{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
 		{"TEXCOORD", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
 		{"NORMAL", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"WORLD_POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
 	};
 
 	UINT numElements = ARRAYSIZE(layoutDesc);
@@ -299,6 +301,11 @@ bool Graphics::InitializeShaders()
 	}
 
 	if (!pixelshader.Initialize(this->device, shaderFolder + L"PixelShader.cso"))
+	{
+		return false;
+	}
+
+	if (!pixelshader_nolight.Initialize(this->device, shaderFolder + L"PixelShader_NoLigth.cso"))
 	{
 		return false;
 	}

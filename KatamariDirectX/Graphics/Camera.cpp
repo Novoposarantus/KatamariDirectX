@@ -55,7 +55,7 @@ void Camera::UpdateViewMatrix()
 	auto mat = Matrix::CreateFromYawPitchRoll(this->yaw, this->pitch, 0);
 	this->pos = Vector3::Transform(Vector3(0, r, 0), mat) + personPos;
 	this->viewMatrix = Matrix::CreateLookAt(
-		pos,
+		this->pos,
 		personPos, 
 	Vector3::Up);
 	

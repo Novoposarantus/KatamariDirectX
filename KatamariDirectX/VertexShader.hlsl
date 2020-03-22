@@ -1,7 +1,7 @@
 cbuffer cBuffer : register(b0)
 {
-    float4x4 wvpMatrix;
-    float4x4 worldMatrix;
+    row_major float4x4 wvpMatrix;
+    row_major float4x4 worldMatrix;
 };
 
 struct VS_INPUT
