@@ -28,16 +28,14 @@ bool Model::Initialize(
 
 void Model::Draw(const DirectX::SimpleMath::Matrix& worldMatrix, const DirectX::SimpleMath::Matrix& viewProjectionMatrix)
 {
-	//Update Constant buffer with WVP Matrix
-	this->cb_vs_vertexshader->data.wvpMatrix = worldMatrix * viewProjectionMatrix; //Calculate World-View-Projection Matrix
-	this->cb_vs_vertexshader->data.worldMatrix = worldMatrix; //Calculate World-Projection Matrix
-	this->cb_vs_vertexshader->ApplyChanges();
 	this->deviceContext->VSSetConstantBuffers(0, 1, this->cb_vs_vertexshader->GetAddressOf());
-
-	//this->deviceContext->PSSetShaderResources(0, 1, &this->texture); //Set Texture
 
 	for (int i = 0; i < meshes.size(); i++)
 	{
+		//Update Constant buffer with WVP Matrix
+		this->cb_vs_vertexshader->data.wvpMatrix = meshes[i].GetTransformMatrix() *  worldMatrix * viewProjectionMatrix; //Calculate World-View-Projection Matrix
+		this->cb_vs_vertexshader->data.worldMatrix = meshes[i].GetTransformMatrix() * worldMatrix; //Calculate World-Projection Matrix
+		this->cb_vs_vertexshader->ApplyChanges();
 		meshes[i].Draw();
 	}
 }
@@ -72,25 +70,28 @@ bool Model::LoadModel(const std::string& filePath)
 	this->zPlus = -std::numeric_limits<float>::max();
 	this->zMinus = std::numeric_limits<float>::max();
 
-	this->ProcessNode(pScene->mRootNode, pScene);
+	this->ProcessNode(pScene->mRootNode, pScene, DirectX::SimpleMath::Matrix::Identity);
 	return true;
 }
 
-void Model::ProcessNode(aiNode* node, const aiScene* scene)
+void Model::ProcessNode(aiNode* node, const aiScene* scene, const DirectX::SimpleMath::Matrix& parentTransformMatrix)
 {
+	DirectX::SimpleMath::Matrix transformMatrix = DirectX::SimpleMath::Matrix(&node->mTransformation.a1).Transpose()
+		* parentTransformMatrix;
+
 	for (UINT i = 0; i < node->mNumMeshes; i++)
 	{
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		meshes.push_back(this->ProcessMesh(mesh, scene));
+		meshes.push_back(this->ProcessMesh(mesh, scene, transformMatrix));
 	}
 
 	for (UINT i = 0; i < node->mNumChildren; i++)
 	{
-		this->ProcessNode(node->mChildren[i], scene);
+		this->ProcessNode(node->mChildren[i], scene, transformMatrix);
 	}
 }
 
-Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
+Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene, const DirectX::SimpleMath::Matrix& transformMatrix)
 {
 	// Data to fill
 	std::vector<Vertex> vertices;
@@ -104,34 +105,36 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 		vertex.pos.x = mesh->mVertices[i].x;
 		vertex.pos.y = mesh->mVertices[i].y;
 		vertex.pos.z = mesh->mVertices[i].z;
-		if (this->xPlus < vertex.pos.x)
+		DirectX::SimpleMath::Vector3 vertexPos = DirectX::SimpleMath::Vector3::Transform(vertex.pos, transformMatrix);
+
+		if (this->xPlus < vertexPos.x)
 		{
-			this->xPlus = vertex.pos.x;
+			this->xPlus = vertexPos.x;
 		}
 
-		if (this->xMinus > vertex.pos.x)
+		if (this->xMinus > vertexPos.x)
 		{
-			this->xMinus = vertex.pos.x;
+			this->xMinus = vertexPos.x;
 		}
 
-		if (this->yPlus < vertex.pos.y)
+		if (this->yPlus < vertexPos.y)
 		{
-			this->yPlus = vertex.pos.y;
+			this->yPlus = vertexPos.y;
 		}
 
-		if (this->yMinus > vertex.pos.y)
+		if (this->yMinus > vertexPos.y)
 		{
-			this->yMinus = vertex.pos.y;
+			this->yMinus = vertexPos.y;
 		}
 
-		if (this->zPlus < vertex.pos.z)
+		if (this->zPlus < vertexPos.z)
 		{
-			this->zPlus = vertex.pos.z;
+			this->zPlus = vertexPos.z;
 		}
 
-		if (this->zMinus > vertex.pos.z)
+		if (this->zMinus > vertexPos.z)
 		{
-			this->zMinus = vertex.pos.z;
+			this->zMinus = vertexPos.z;
 		}
 
 		vertex.normal.x = mesh->mNormals[i].x;
@@ -161,7 +164,7 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 	std::vector<Texture> diffuseTextures = LoadMaterialTextures(material, aiTextureType::aiTextureType_DIFFUSE, scene);
 	textures.insert(textures.end(), diffuseTextures.begin(), diffuseTextures.end());
 
-	return Mesh(this->device, this->deviceContext, vertices, indices, textures);
+	return Mesh(this->device, this->deviceContext, vertices, indices, textures, transformMatrix);
 }
 
 TextureStorageType Model::DetermineTextureStorageType(const aiScene* pScene, aiMaterial* pMat, unsigned int index, aiTextureType textureType)

@@ -55,26 +55,31 @@ void Engine::Update()
 	}
 	
 	auto mainObjectPos = Vector3(0, 0, 0);
+	auto mainObjectRot = Vector3(0, 0, 0);
 
 	if (keyboard.KeyIsPressed('W'))
 	{
 		mainObjectPos += -this->gfx.camera.GetForwardVector() * this->gfx.camera.GetSpeed() * dt;
-		this->gfx.mainObject.Rotate(this->gfx.camera.GetLeftVector() * this->gfx.camera.GetSpeed(), dt);
+		mainObjectRot += this->gfx.camera.GetLeftVector() * this->gfx.camera.GetSpeed();
+		//this->gfx.mainObject.Rotate(this->gfx.camera.GetLeftVector() * this->gfx.camera.GetSpeed(), dt);
 	}
 	if (keyboard.KeyIsPressed('S'))
 	{
 		mainObjectPos += this->gfx.camera.GetForwardVector() * this->gfx.camera.GetSpeed() * dt;
-		this->gfx.mainObject.Rotate(-this->gfx.camera.GetLeftVector() * this->gfx.camera.GetSpeed(), dt);
+		mainObjectRot += -this->gfx.camera.GetLeftVector() * this->gfx.camera.GetSpeed();
+		//this->gfx.mainObject.Rotate(-this->gfx.camera.GetLeftVector() * this->gfx.camera.GetSpeed(), dt);
 	}
 	if (keyboard.KeyIsPressed('A'))
 	{
 		mainObjectPos += this->gfx.camera.GetLeftVector() * this->gfx.camera.GetSpeed() * dt;
-		this->gfx.mainObject.Rotate(this->gfx.camera.GetForwardVector() * this->gfx.camera.GetSpeed(), dt);
+		mainObjectRot += this->gfx.camera.GetForwardVector() * this->gfx.camera.GetSpeed();
+		//this->gfx.mainObject.Rotate(this->gfx.camera.GetForwardVector() * this->gfx.camera.GetSpeed(), dt);
 	}
 	if (keyboard.KeyIsPressed('D'))
 	{
 		mainObjectPos += -this->gfx.camera.GetLeftVector() * this->gfx.camera.GetSpeed() * dt;
-		this->gfx.mainObject.Rotate(-this->gfx.camera.GetForwardVector() * this->gfx.camera.GetSpeed(), dt);
+		mainObjectRot += -this->gfx.camera.GetForwardVector() * this->gfx.camera.GetSpeed();
+		//this->gfx.mainObject.Rotate(-this->gfx.camera.GetForwardVector() * this->gfx.camera.GetSpeed(), dt);
 	}
 
 	if (keyboard.KeyIsPressed('C'))
@@ -82,7 +87,6 @@ void Engine::Update()
 		Vector3 lightPosotion = this->gfx.camera.GetPosotion();
 		lightPosotion += this->gfx.camera.GetBackwardVector() * 2;
 		this->gfx.light.SetPosition(lightPosotion);
-		this->gfx.light.SetRotation(this->gfx.camera.GetRotation());
 	}
 
 	if (mainObjectPos.x != 0 || mainObjectPos.y != 0 || mainObjectPos.z != 0)
@@ -97,6 +101,7 @@ void Engine::Update()
 			}
 		}
 		this->gfx.mainObject.AdjustPosition(mainObjectPos);
+		this->gfx.mainObject.Rotate(mainObjectRot, dt);
 		this->gfx.camera.UpdateViewMatrix();
 	}
 

@@ -120,7 +120,6 @@ const bool RenderableGameObject::CheckFutureColision(RenderableGameObject& gameO
 
 const bool RenderableGameObject::CanAttach(float curSize)
 {
-	return true;
 	return curSize >= this->size;
 }
 

@@ -5,11 +5,13 @@ Mesh::Mesh(
 	ID3D11DeviceContext* deviceContext, 
 	std::vector<Vertex>& vertices, 
 	std::vector<DWORD>& indices,
-	std::vector<Texture> textures
+	std::vector<Texture> textures,
+	const DirectX::SimpleMath::Matrix& transformMatrix
 )
 {
 	this->deviceContext = deviceContext;
 	this->textures = textures;
+	this->transformMatrix = transformMatrix;
 
 	HRESULT hr = this->vertexbuffer.Initialize(device, vertices.data(), vertices.size());
 	COM_ERROR_IF_FAILED(hr, "Failed to initialize vertex buffer for mesh.");
@@ -24,6 +26,12 @@ Mesh::Mesh(const Mesh& mesh)
 	this->indexbuffer = mesh.indexbuffer;
 	this->vertexbuffer = mesh.vertexbuffer;
 	this->textures = mesh.textures;
+	this->transformMatrix = mesh.transformMatrix;
+}
+
+const DirectX::SimpleMath::Matrix& Mesh::GetTransformMatrix()
+{
+	return this->transformMatrix;
 }
 
 void Mesh::Draw()

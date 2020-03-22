@@ -331,8 +331,9 @@ bool Graphics::InitializeScene()
 		//Initialize model(s)
 		if (!mainObject.Initialize("Data\\Objects\\Samples\\orange_embeddedtexture.fbx",this->device.Get(), this->deviceContext.Get(), this->cb_vs_VertexShader))
 			return false;
+		const float orangeScale = 1.8;
 		float mainStartSize = 0.5f;
-		mainObject.SetScale(1, 1, 1);
+		mainObject.SetScale(orangeScale, orangeScale, orangeScale);
 		mainObject.SetSize(mainStartSize);
 		this->mainObjectSize = mainStartSize;
 
@@ -349,7 +350,7 @@ bool Graphics::InitializeScene()
 			float z = rand() % 200 - 100; 
 			float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (0.7f - 0.2f)));
 			gameObject.SetPosition(x, 0, z);
-			gameObject.SetScale(1, 1, 1);
+			gameObject.SetScale(orangeScale, orangeScale, orangeScale);
 			gameObject.SetSize(r);
 			gameObjects.push_back(gameObject);
 		}
@@ -420,6 +421,7 @@ bool Graphics::InitializeScene()
 
 		if (!light.Initialize(this->device.Get(),this->deviceContext.Get(), this->cb_vs_VertexShader))
 			return false;
+		light.SetScale(3, 3, 3);
 
 		camera.SetProjectionValues(90.0f, static_cast<float>(windowWidth) / static_cast<float>(windowHeight), 0.1f, 10000.0f);
 	}
