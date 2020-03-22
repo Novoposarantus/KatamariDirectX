@@ -11,6 +11,7 @@ bool Light::Initialize(
 	this->SetPosition(0.0f, 0.0f, 0.0f);
 	this->SetRotation(0.0f, 0.0f, 0.0f);
 	this->SetScale(1, 1, 1);
+	this->SetSize(0.35);
 	this->UpdateWorldMatrix();
 	return true;
 }

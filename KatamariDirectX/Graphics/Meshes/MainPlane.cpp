@@ -17,10 +17,10 @@ bool MainPlane::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 		//Textured Square
 		Vertex v[] =
 		{
-			Vertex(-100,  -0.5f, -100, 0.0f, 1.0f), //FRONT Bottom Left   - [0]
-			Vertex(-100,  -0.5f,  100, 0.0f, 0.0f), //FRONT Top Left      - [1]
-			Vertex( 100,  -0.5f,  100, 1.0f, 0.0f), //FRONT Top Right     - [2]
-			Vertex( 100,  -0.5f, -100, 1.0f, 1.0f), //FRONT Bottom Right   - [3]
+			Vertex(-100,  -0.5f, -100, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f), //FRONT Bottom Left   - [0]
+			Vertex(-100,  -0.5f,  100, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f), //FRONT Top Left      - [1]
+			Vertex( 100,  -0.5f,  100, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f), //FRONT Top Right     - [2]
+			Vertex( 100,  -0.5f, -100, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f), //FRONT Bottom Right   - [3]
 		};
 
 		//Load Vertex Data
@@ -53,7 +53,8 @@ void MainPlane::SetTexture(ID3D11ShaderResourceView* texture)
 void MainPlane::Draw(const DirectX::SimpleMath::Matrix& viewProjectionMatrix)
 {
 	//Update Constant buffer with WVP Matrix
-	this->cb_vs_vertexshader->data.mat = this->worldMatrix * viewProjectionMatrix; //Calculate World-View-Projection Matrix
+	this->cb_vs_vertexshader->data.wvpMatrix = this->worldMatrix * viewProjectionMatrix; //Calculate World-View-Projection Matrix
+	this->cb_vs_vertexshader->data.worldMatrix = this->worldMatrix; //Calculate World-View-Projection Matrix
 	this->cb_vs_vertexshader->ApplyChanges();
 	this->deviceContext->VSSetConstantBuffers(0, 1, this->cb_vs_vertexshader->GetAddressOf());
 

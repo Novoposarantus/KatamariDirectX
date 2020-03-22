@@ -24,6 +24,20 @@ const Matrix& Camera::GetProjectionMatrix() const
 	return this->projectionMatrix;
 }
 
+Vector3 Camera::GetPosotion()
+{
+	return this->pos;
+}
+
+Vector3 Camera::GetRotation()
+{
+	Vector3 scale(0, 0, 0);
+	Quaternion rot(0, 0, 0, 0);
+	Vector3 trans(0, 0, 0);
+	this->viewMatrix.Decompose(scale, rot, trans);
+	return Vector3(rot.x, rot.y, rot.z);
+}
+
 void Camera::Rotation(float dx, float dy)
 {
 	this->yaw -= dx * rotationSpeed;
@@ -39,18 +53,17 @@ void Camera::UpdateViewMatrix()
 		personPos = mainGameObjectWorldMatrix.Translation();
 	}
 	auto mat = Matrix::CreateFromYawPitchRoll(this->yaw, this->pitch, 0);
-	Vector3 pos(0, r, 0);
-	pos = Vector3::Transform(pos, mat) + personPos;
+	this->pos = Vector3::Transform(Vector3(0, r, 0), mat) + personPos;
 	this->viewMatrix = Matrix::CreateLookAt(
 		pos,
 		personPos, 
 	Vector3::Up);
 	
 	Matrix vecRotationMatrix = Matrix::CreateFromYawPitchRoll(this->yaw, 0.0f, 0.0f);
-	this->vec_forward = Vector3::Transform(this->DEFAULT_FORWARD_VECTOR, vecRotationMatrix) * transSpeed;
-	this->vec_backward = Vector3::Transform(this->DEFAULT_BACKWARD_VECTOR, vecRotationMatrix) * transSpeed;
-	this->vec_right = Vector3::Transform(this->DEFAULT_RIGHT_VECTOR, vecRotationMatrix) * transSpeed;
-	this->vec_left = Vector3::Transform(this->DEFAULT_LEFT_VECTOR, vecRotationMatrix) * transSpeed;
+	this->vec_forward = Vector3::Transform(this->DEFAULT_FORWARD_VECTOR, vecRotationMatrix);
+	this->vec_backward = Vector3::Transform(this->DEFAULT_BACKWARD_VECTOR, vecRotationMatrix);
+	this->vec_right = Vector3::Transform(this->DEFAULT_RIGHT_VECTOR, vecRotationMatrix);
+	this->vec_left = Vector3::Transform(this->DEFAULT_LEFT_VECTOR, vecRotationMatrix);
 }
 
 const Vector3& Camera::GetForwardVector()
@@ -71,6 +84,10 @@ const Vector3& Camera::GetBackwardVector()
 const Vector3& Camera::GetLeftVector()
 {
 	return this->vec_left;
+}
+
+const float Camera::GetSpeed() {
+	return transSpeed;
 }
 
 void Camera::SetProjectionValues(float fovDegrees, float aspectRatio, float nearZ, float farZ)

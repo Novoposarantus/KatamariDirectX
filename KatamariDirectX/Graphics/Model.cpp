@@ -29,7 +29,8 @@ bool Model::Initialize(
 void Model::Draw(const DirectX::SimpleMath::Matrix& worldMatrix, const DirectX::SimpleMath::Matrix& viewProjectionMatrix)
 {
 	//Update Constant buffer with WVP Matrix
-	this->cb_vs_vertexshader->data.mat = worldMatrix * viewProjectionMatrix; //Calculate World-View-Projection Matrix
+	this->cb_vs_vertexshader->data.wvpMatrix = worldMatrix * viewProjectionMatrix; //Calculate World-View-Projection Matrix
+	this->cb_vs_vertexshader->data.worldMatrix = worldMatrix; //Calculate World-Projection Matrix
 	this->cb_vs_vertexshader->ApplyChanges();
 	this->deviceContext->VSSetConstantBuffers(0, 1, this->cb_vs_vertexshader->GetAddressOf());
 
@@ -132,6 +133,10 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 		{
 			this->zMinus = vertex.pos.z;
 		}
+
+		vertex.normal.x = mesh->mNormals[i].x;
+		vertex.normal.y = mesh->mNormals[i].y;
+		vertex.normal.z = mesh->mNormals[i].z;
 
 		if (mesh->mTextureCoords[0])
 		{

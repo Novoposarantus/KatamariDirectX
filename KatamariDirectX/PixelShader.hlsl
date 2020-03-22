@@ -2,12 +2,18 @@ cbuffer lightBuffer : register(b0)
 {
     float3 ambientLightColor;
     float ambientLightStrength;
+    
+    float3 dynamicLightColor;
+    float3 dynamicLightPosition;
+    float dynamicLightStrength;
 }
 
 struct PS_INPUT
 {
     float4 inPosition : SV_POSITION;
     float2 inTexCoord : TEXCOORD;
+    float3 inNormal : NORMAL;
+    float3 inWorldPos : WORLD_POSITION;
 };
 
 Texture2D objTexture : TEXTURE : register(t0);
