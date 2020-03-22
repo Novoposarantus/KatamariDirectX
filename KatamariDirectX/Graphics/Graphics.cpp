@@ -71,7 +71,7 @@ void Graphics::RenderFrame()
 		this->gameObjects[i].Draw(camera.GetViewMatrix()* camera.GetProjectionMatrix());
 	}
 
-Ad	this->deviceContext->PSSetShader(pixelshader_nolight.GetShader(), NULL, 0);
+	this->deviceContext->PSSetShader(pixelshader_nolight.GetShader(), NULL, 0);
 	this->light.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
 
 #pragma region DrawText
