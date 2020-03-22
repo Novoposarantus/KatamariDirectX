@@ -18,10 +18,10 @@ public:
 	void Rotation(float x, float y);
 	void UpdateViewMatrix();
 
-	const Vector3& GetForwardVector();
-	const Vector3& GetRightVector();
-	const Vector3& GetBackwardVector();
-	const Vector3& GetLeftVector();
+	const Vector3& GetForwardVector(bool omitPitch = false);
+	const Vector3& GetRightVector(bool omitPitch = false);
+	const Vector3& GetBackwardVector(bool omitPitch = false);
+	const Vector3& GetLeftVector(bool omitPitch = false);
 
 	const float rotationSpeed = 0.001f;
 
@@ -36,16 +36,17 @@ private:
 	Matrix viewMatrix;
 	Matrix projectionMatrix;
 
-	const Vector3 DEFAULT_FORWARD_VECTOR = Vector3(0.0f, 0.0f, 1.0f);
-	const Vector3 DEFAULT_UP_VECTOR = Vector3(0.0f, 1.0f, 0.0f);
-	const Vector3 DEFAULT_BACKWARD_VECTOR = Vector3(0.0f, 0.0f, -1.0f);
-	const Vector3 DEFAULT_LEFT_VECTOR = Vector3(-1.0f, 0.0f, 0.0f);
-	const Vector3 DEFAULT_RIGHT_VECTOR = Vector3(1.0f, 0.0f, 0.0f);
 
 	Vector3 vec_forward;
 	Vector3 vec_left;
 	Vector3 vec_right;
 	Vector3 vec_backward;
+
+	Vector3 vec_forward_no_pitch;
+	Vector3 vec_left_no_pitch;
+	Vector3 vec_right_no_pitch;
+	Vector3 vec_backward_no_pitch;
+
 	Vector3 pos;
 
 	float transSpeed = 0.01f;

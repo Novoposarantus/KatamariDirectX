@@ -59,34 +59,31 @@ void Engine::Update()
 
 	if (keyboard.KeyIsPressed('W'))
 	{
-		mainObjectPos += -this->gfx.camera.GetForwardVector() * this->gfx.camera.GetSpeed() * dt;
-		mainObjectRot += this->gfx.camera.GetLeftVector() * this->gfx.camera.GetSpeed();
-		//this->gfx.mainObject.Rotate(this->gfx.camera.GetLeftVector() * this->gfx.camera.GetSpeed(), dt);
+		mainObjectPos += this->gfx.camera.GetForwardVector(true) * this->gfx.camera.GetSpeed() * dt;
+		mainObjectRot += this->gfx.camera.GetLeftVector(true) * this->gfx.camera.GetSpeed();
 	}
 	if (keyboard.KeyIsPressed('S'))
 	{
-		mainObjectPos += this->gfx.camera.GetForwardVector() * this->gfx.camera.GetSpeed() * dt;
-		mainObjectRot += -this->gfx.camera.GetLeftVector() * this->gfx.camera.GetSpeed();
-		//this->gfx.mainObject.Rotate(-this->gfx.camera.GetLeftVector() * this->gfx.camera.GetSpeed(), dt);
+		mainObjectPos += -this->gfx.camera.GetForwardVector(true) * this->gfx.camera.GetSpeed() * dt;
+		mainObjectRot += -this->gfx.camera.GetLeftVector(true) * this->gfx.camera.GetSpeed();
 	}
 	if (keyboard.KeyIsPressed('A'))
 	{
-		mainObjectPos += this->gfx.camera.GetLeftVector() * this->gfx.camera.GetSpeed() * dt;
-		mainObjectRot += this->gfx.camera.GetForwardVector() * this->gfx.camera.GetSpeed();
-		//this->gfx.mainObject.Rotate(this->gfx.camera.GetForwardVector() * this->gfx.camera.GetSpeed(), dt);
+		mainObjectPos += this->gfx.camera.GetLeftVector(true) * this->gfx.camera.GetSpeed() * dt;
+		mainObjectRot += this->gfx.camera.GetBackwardVector(true) * this->gfx.camera.GetSpeed();
 	}
 	if (keyboard.KeyIsPressed('D'))
 	{
-		mainObjectPos += -this->gfx.camera.GetLeftVector() * this->gfx.camera.GetSpeed() * dt;
-		mainObjectRot += -this->gfx.camera.GetForwardVector() * this->gfx.camera.GetSpeed();
-		//this->gfx.mainObject.Rotate(-this->gfx.camera.GetForwardVector() * this->gfx.camera.GetSpeed(), dt);
+		mainObjectPos += -this->gfx.camera.GetLeftVector(true) * this->gfx.camera.GetSpeed() * dt;
+		mainObjectRot += -this->gfx.camera.GetBackwardVector(true) * this->gfx.camera.GetSpeed();
 	}
 
 	if (keyboard.KeyIsPressed('C'))
 	{
 		Vector3 lightPosotion = this->gfx.camera.GetPosotion();
-		lightPosotion += this->gfx.camera.GetBackwardVector() * 2;
+		lightPosotion += this->gfx.camera.GetForwardVector() * 2;
 		this->gfx.light.SetPosition(lightPosotion);
+		this->gfx.light.SetRotation(this->gfx.camera.GetRotation());
 	}
 
 	if (mainObjectPos.x != 0 || mainObjectPos.y != 0 || mainObjectPos.z != 0)

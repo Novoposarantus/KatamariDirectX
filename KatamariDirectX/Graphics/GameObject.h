@@ -26,8 +26,8 @@ public:
 	void SetScale(float x, float y, float z);
 	void AdjustRotation(const Vector3& rot);
 	void AdjustRotation(float x, float y, float z);
-	const Vector3& GetForwardVector(bool omitY);
-	const Vector3& GetLeftVector(bool omitY);
+	const Vector3& GetForwardVector(bool omitY = false);
+	const Vector3& GetLeftVector(bool omitY = false);
 
 	Model model;
 protected:
@@ -39,10 +39,6 @@ protected:
 	Vector3 pos;
 	Vector3 rot;
 	Vector3 scale;
-
-	const Vector3 DEFAULT_FORWARD_VECTOR = Vector3(0.0f, 0.0f, 1.0f);
-	const Vector3 DEFAULT_UP_VECTOR = Vector3(0.0f, 1.0f, 0.0f);
-	const Vector3 DEFAULT_LEFT_VECTOR = Vector3(-1.0f, 0.0f, 0.0f);
 
 	Vector3 vec_forward;
 	Vector3 vec_left;

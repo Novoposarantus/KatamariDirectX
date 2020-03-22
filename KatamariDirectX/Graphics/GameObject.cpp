@@ -29,12 +29,12 @@ void GameObject::UpdateWorldMatrix()
 void GameObject::UpdateDirectionVectors()
 {
 	Matrix vecRotationMatrix = Matrix::CreateFromYawPitchRoll(this->rot.y, this->rot.x, 0.0f);
-	this->vec_forward = Vector3::Transform(this->DEFAULT_FORWARD_VECTOR, vecRotationMatrix);
-	this->vec_left = Vector3::Transform(this->DEFAULT_LEFT_VECTOR, vecRotationMatrix);
+	this->vec_forward = Vector3::Transform(Vector3::Forward, vecRotationMatrix);
+	this->vec_left = Vector3::Transform(Vector3::Left, vecRotationMatrix);
 
 	Matrix vecRotationMatrixNoY = Matrix::CreateFromYawPitchRoll(0.0f, this->rot.x, 0.0f);
-	this->vec_forward_noY = Vector3::Transform(this->DEFAULT_FORWARD_VECTOR, vecRotationMatrixNoY);
-	this->vec_left_noY = Vector3::Transform(this->DEFAULT_LEFT_VECTOR, vecRotationMatrixNoY);
+	this->vec_forward_noY = Vector3::Transform(Vector3::Forward, vecRotationMatrixNoY);
+	this->vec_left_noY = Vector3::Transform(Vector3::Left, vecRotationMatrixNoY);
 }
 
 const Vector3& GameObject::GetPosition() const
