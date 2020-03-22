@@ -19,8 +19,6 @@ public:
 	void UpdateViewMatrix();
 
 	const Vector3& GetForwardVector(bool omitPitch = false);
-	const Vector3& GetRightVector(bool omitPitch = false);
-	const Vector3& GetBackwardVector(bool omitPitch = false);
 	const Vector3& GetLeftVector(bool omitPitch = false);
 
 	const float rotationSpeed = 0.001f;
@@ -39,13 +37,9 @@ private:
 
 	Vector3 vec_forward;
 	Vector3 vec_left;
-	Vector3 vec_right;
-	Vector3 vec_backward;
 
 	Vector3 vec_forward_no_pitch;
 	Vector3 vec_left_no_pitch;
-	Vector3 vec_right_no_pitch;
-	Vector3 vec_backward_no_pitch;
 
 	Vector3 pos;
 

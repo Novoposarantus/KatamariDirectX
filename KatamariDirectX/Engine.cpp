@@ -70,12 +70,12 @@ void Engine::Update()
 	if (keyboard.KeyIsPressed('A'))
 	{
 		mainObjectPos += this->gfx.camera.GetLeftVector(true) * this->gfx.camera.GetSpeed() * dt;
-		mainObjectRot += this->gfx.camera.GetBackwardVector(true) * this->gfx.camera.GetSpeed();
+		mainObjectRot += -this->gfx.camera.GetForwardVector(true) * this->gfx.camera.GetSpeed();
 	}
 	if (keyboard.KeyIsPressed('D'))
 	{
 		mainObjectPos += -this->gfx.camera.GetLeftVector(true) * this->gfx.camera.GetSpeed() * dt;
-		mainObjectRot += -this->gfx.camera.GetBackwardVector(true) * this->gfx.camera.GetSpeed();
+		mainObjectRot += this->gfx.camera.GetForwardVector(true) * this->gfx.camera.GetSpeed();
 	}
 
 	if (keyboard.KeyIsPressed('C'))
