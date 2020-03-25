@@ -38,11 +38,10 @@ void Graphics::RenderFrame()
 	this->cb_ps_Light.data.dynamicLightColor = light.lightColor;
 	this->cb_ps_Light.data.dynamicLightStrength = light.lightStrength;
 	this->cb_ps_Light.data.dynamicLightPosition = light.GetPosition();
-	this->cb_ps_Light.data.dynamicLightRotation = light.GetRotation();
 	this->cb_ps_Light.data.dynamicLightAttenuation_a = light.attenuation_a;
 	this->cb_ps_Light.data.dynamicLightAttenuation_b = light.attenuation_b;
 	this->cb_ps_Light.data.dynamicLightAttenuation_c = light.attenuation_c;
-
+	this->cb_ps_Light.data.ambientLightStrength = 0.05f;
 
 	this->cb_ps_Light.ApplyChanges();
 	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_Light.GetAddressOf());
@@ -118,15 +117,15 @@ void Graphics::RenderFrame()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
-	ImGui::Begin("Light Controls");
-	ImGui::DragFloat3("AL Color", &this->cb_ps_Light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
-	ImGui::DragFloat("AL Strength", &this->cb_ps_Light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
-	ImGui::DragFloat3("DL Color", &this->light.lightColor.x, 0.01f, 0.0f, 1.0f);
-	ImGui::DragFloat("DL Strength", &this->light.lightStrength, 0.01f, 0.0f, 1.0f);
-	ImGui::DragFloat("DL Attenuation A", &this->light.attenuation_a, 0.01f, 0.1f, 1.0f);
-	ImGui::DragFloat("DL Attenuation B", &this->light.attenuation_b, 0.01f, 0.0f, 1.0f);
-	ImGui::DragFloat("DL Attenuation C", &this->light.attenuation_c, 0.01f, 0.0f, 1.0f);
-	ImGui::End();
+	//ImGui::Begin("Light Controls");
+	//ImGui::DragFloat3("AL Color", &this->cb_ps_Light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
+	//ImGui::DragFloat("AL Strength", &this->cb_ps_Light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
+	//ImGui::DragFloat3("DL Color", &this->light.lightColor.x, 0.01f, 0.0f, 1.0f);
+	//ImGui::DragFloat("DL Strength", &this->light.lightStrength, 1.0f, 0.0f, 100.0f);
+	//ImGui::DragFloat("DL Attenuation A", &this->light.attenuation_a, 0.01f, 0.1f, 1.0f);
+	//ImGui::DragFloat("DL Attenuation B", &this->light.attenuation_b, 0.01f, 0.0f, 1.0f);
+	//ImGui::DragFloat("DL Attenuation C", &this->light.attenuation_c, 0.01f, 0.0f, 1.0f);
+	//ImGui::End();
 
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -347,83 +346,83 @@ bool Graphics::InitializeScene()
 		mainObject.SetSize(mainStartSize);
 		this->mainObjectSize = mainStartSize;
 
-		//for (int i = 0; i < 10; ++i)
-		//{
-		//	RenderableGameObject gameObject;
-		//	gameObject.Initialize(
-		//		"Data\\Objects\\Samples\\orange_embeddedtexture.fbx", 
-		//		this->device.Get(), 
-		//		this->deviceContext.Get(), 
-		//		this->cb_vs_VertexShader
-		//	);
-		//	float x = rand() % 200 - 100;
-		//	float z = rand() % 200 - 100; 
-		//	float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (0.7f - 0.2f)));
-		//	gameObject.SetPosition(x, 0, z);
-		//	gameObject.SetScale(orangeScale, orangeScale, orangeScale);
-		//	gameObject.SetSize(r);
-		//	gameObjects.push_back(gameObject);
-		//}
+		for (int i = 0; i < 10; ++i)
+		{
+			RenderableGameObject gameObject;
+			gameObject.Initialize(
+				"Data\\Objects\\Samples\\orange_embeddedtexture.fbx", 
+				this->device.Get(), 
+				this->deviceContext.Get(), 
+				this->cb_vs_VertexShader
+			);
+			float x = rand() % 200 - 100;
+			float z = rand() % 200 - 100; 
+			float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (0.7f - 0.2f)));
+			gameObject.SetPosition(x, 0, z);
+			gameObject.SetScale(orangeScale, orangeScale, orangeScale);
+			gameObject.SetSize(r);
+			gameObjects.push_back(gameObject);
+		}
 
-		//const float skullScaleMod = 0.05f;
-		//for (int i = 0; i < 10; ++i)
-		//{
-		//	RenderableGameObject gameObject;
-		//	gameObject.Initialize(
-		//		"Data\\Objects\\Skull\\12140_Skull_v3_L2.obj",
-		//		this->device.Get(),
-		//		this->deviceContext.Get(),
-		//		this->cb_vs_VertexShader
-		//	);
-		//	float x = rand() % 200 - 100;
-		//	float z = rand() % 200 - 100;
-		//	float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.0f - 0.2f)));
-		//	gameObject.SetPosition(x, 0, z);
-		//	gameObject.SetRotation(90, 0, 0);
-		//	gameObject.SetScale(skullScaleMod, skullScaleMod, skullScaleMod);
-		//	gameObject.SetSize(r);
-		//	gameObjects.push_back(gameObject);
-		//}
+		const float skullScaleMod = 0.05f;
+		for (int i = 0; i < 10; ++i)
+		{
+			RenderableGameObject gameObject;
+			gameObject.Initialize(
+				"Data\\Objects\\Skull\\12140_Skull_v3_L2.obj",
+				this->device.Get(),
+				this->deviceContext.Get(),
+				this->cb_vs_VertexShader
+			);
+			float x = rand() % 200 - 100;
+			float z = rand() % 200 - 100;
+			float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.0f - 0.2f)));
+			gameObject.SetPosition(x, 0, z);
+			gameObject.SetRotation(90, 0, 0);
+			gameObject.SetScale(skullScaleMod, skullScaleMod, skullScaleMod);
+			gameObject.SetSize(r);
+			gameObjects.push_back(gameObject);
+		}
 
-		//const float nanusuitScaleMod = 0.09f;
+		const float nanusuitScaleMod = 0.09f;
 
-		//for (int i = 0; i < 10; ++i)
-		//{
-		//	RenderableGameObject gameObject;
-		//	gameObject.Initialize(
-		//		"Data\\Objects\\nanosuit\\nanosuit.obj",
-		//		this->device.Get(),
-		//		this->deviceContext.Get(),
-		//		this->cb_vs_VertexShader
-		//	);
-		//	float x = rand() % 200 - 100;
-		//	float z = rand() % 200 - 100;
-		//	float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (3.0f - 0.2f)));
-		//	gameObject.SetPosition(x, 0, z);
-		//	gameObject.SetScale(nanusuitScaleMod, nanusuitScaleMod, nanusuitScaleMod);
-		//	gameObject.SetSize(r);
-		//	gameObjects.push_back(gameObject);
-		//}
+		for (int i = 0; i < 10; ++i)
+		{
+			RenderableGameObject gameObject;
+			gameObject.Initialize(
+				"Data\\Objects\\nanosuit\\nanosuit.obj",
+				this->device.Get(),
+				this->deviceContext.Get(),
+				this->cb_vs_VertexShader
+			);
+			float x = rand() % 200 - 100;
+			float z = rand() % 200 - 100;
+			float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (3.0f - 0.2f)));
+			gameObject.SetPosition(x, 0, z);
+			gameObject.SetScale(nanusuitScaleMod, nanusuitScaleMod, nanusuitScaleMod);
+			gameObject.SetSize(r);
+			gameObjects.push_back(gameObject);
+		}
 
-		//const float alocasiaScaleMod = 0.001f;
+		const float alocasiaScaleMod = 0.001f;
 
-		//for (int i = 0; i < 1; ++i)
-		//{
-		//	RenderableGameObject gameObject;
-		//	gameObject.Initialize(
-		//		"Data\\Objects\\Alocasia\\01Alocasia_obj.obj",
-		//		this->device.Get(),
-		//		this->deviceContext.Get(),
-		//		this->cb_vs_VertexShader
-		//	);
-		//	float x = rand() % 200 - 100;
-		//	float z = rand() % 200 - 100;
-		//	float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (2.0f - 0.2f)));
-		//	gameObject.SetPosition(x, 0, z);
-		//	gameObject.SetScale(alocasiaScaleMod, alocasiaScaleMod, alocasiaScaleMod);
-		//	gameObject.SetSize(r);
-		//	gameObjects.push_back(gameObject);
-		//}
+		for (int i = 0; i < 1; ++i)
+		{
+			RenderableGameObject gameObject;
+			gameObject.Initialize(
+				"Data\\Objects\\Alocasia\\01Alocasia_obj.obj",
+				this->device.Get(),
+				this->deviceContext.Get(),
+				this->cb_vs_VertexShader
+			);
+			float x = rand() % 200 - 100;
+			float z = rand() % 200 - 100;
+			float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (2.0f - 0.2f)));
+			gameObject.SetPosition(x, 0, z);
+			gameObject.SetScale(alocasiaScaleMod, alocasiaScaleMod, alocasiaScaleMod);
+			gameObject.SetSize(r);
+			gameObjects.push_back(gameObject);
+		}
 
 		//Initialize model(s)
 		if (!mainPlane.Initialize(this->device.Get(), this->deviceContext.Get(), this->cb_vs_VertexShader))
@@ -431,7 +430,7 @@ bool Graphics::InitializeScene()
 
 		if (!light.Initialize(this->device.Get(),this->deviceContext.Get(), this->cb_vs_VertexShader))
 			return false;
-		light.SetPosition(0, 4, 0);
+		light.SetPosition(0, 60, 0);
 
 		camera.SetProjectionValues(90.0f, static_cast<float>(windowWidth) / static_cast<float>(windowHeight), 0.1f, 10000.0f);
 	}

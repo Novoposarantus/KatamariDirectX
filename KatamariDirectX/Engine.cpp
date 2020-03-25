@@ -53,31 +53,32 @@ void Engine::Update()
 		this->gfx.camera.Rotation(3 * dt, 0);
 	}
 
-	if (keyboard.KeyIsPressed(VK_NUMPAD7))
-	{
-		this->gfx.light.Rotate(Vector3(1,0,0), dt);
-	}
-	if (keyboard.KeyIsPressed(VK_NUMPAD9))
-	{
-		this->gfx.light.Rotate(Vector3(-1, 0, 0), dt);
-	}
 	
-	if (keyboard.KeyIsPressed(VK_NUMPAD4))
-	{
-		this->gfx.light.Rotate(Vector3(0, 1, 0), dt);
-	}
-	if (keyboard.KeyIsPressed(VK_NUMPAD6))
-	{
-		this->gfx.light.Rotate(Vector3(0, -1, 0), dt);
-	}
-
 	if (keyboard.KeyIsPressed(VK_NUMPAD1))
 	{
-		this->gfx.light.Rotate(Vector3(0, 0, 1), dt);
+		this->gfx.light.AdjustPosition(Vector3(0, 0, this->gfx.camera.GetSpeed()) * dt);
 	}
 	if (keyboard.KeyIsPressed(VK_NUMPAD3))
 	{
-		this->gfx.light.Rotate(Vector3(0, 0, -1), dt);
+		this->gfx.light.AdjustPosition(Vector3(0, 0, -this->gfx.camera.GetSpeed()) * dt);
+	}
+
+	if (keyboard.KeyIsPressed(VK_NUMPAD4))
+	{
+		this->gfx.light.AdjustPosition(Vector3(this->gfx.camera.GetSpeed(),0,0) * dt);
+	}
+	if (keyboard.KeyIsPressed(VK_NUMPAD6))
+	{
+		this->gfx.light.AdjustPosition(Vector3(-this->gfx.camera.GetSpeed(), 0, 0) * dt);
+	}
+
+	if (keyboard.KeyIsPressed(VK_NUMPAD7))
+	{
+		this->gfx.light.AdjustPosition(Vector3(0, this->gfx.camera.GetSpeed(), 0 ) * dt);
+	}
+	if (keyboard.KeyIsPressed(VK_NUMPAD9))
+	{
+		this->gfx.light.AdjustPosition(Vector3(0, -this->gfx.camera.GetSpeed(), 0) * dt);
 	}
 
 	auto mainObjectPos = Vector3(0, 0, 0);
