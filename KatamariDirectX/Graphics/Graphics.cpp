@@ -41,7 +41,6 @@ void Graphics::RenderFrame()
 	this->cb_ps_Light.data.dynamicLightAttenuation_a = light.attenuation_a;
 	this->cb_ps_Light.data.dynamicLightAttenuation_b = light.attenuation_b;
 	this->cb_ps_Light.data.dynamicLightAttenuation_c = light.attenuation_c;
-	this->cb_ps_Light.data.ambientLightStrength = 0.05f;
 
 	this->cb_ps_Light.ApplyChanges();
 	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_Light.GetAddressOf());
@@ -117,15 +116,15 @@ void Graphics::RenderFrame()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
-	//ImGui::Begin("Light Controls");
-	//ImGui::DragFloat3("AL Color", &this->cb_ps_Light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
-	//ImGui::DragFloat("AL Strength", &this->cb_ps_Light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
-	//ImGui::DragFloat3("DL Color", &this->light.lightColor.x, 0.01f, 0.0f, 1.0f);
-	//ImGui::DragFloat("DL Strength", &this->light.lightStrength, 1.0f, 0.0f, 100.0f);
-	//ImGui::DragFloat("DL Attenuation A", &this->light.attenuation_a, 0.01f, 0.1f, 1.0f);
-	//ImGui::DragFloat("DL Attenuation B", &this->light.attenuation_b, 0.01f, 0.0f, 1.0f);
-	//ImGui::DragFloat("DL Attenuation C", &this->light.attenuation_c, 0.01f, 0.0f, 1.0f);
-	//ImGui::End();
+	ImGui::Begin("Light Controls");
+	ImGui::DragFloat3("AL Color", &this->cb_ps_Light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
+	ImGui::DragFloat("AL Strength", &this->cb_ps_Light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
+	ImGui::DragFloat3("DL Color", &this->light.lightColor.x, 0.01f, 0.0f, 1.0f);
+	ImGui::DragFloat("DL Strength", &this->light.lightStrength, 1.0f, 0.0f, 100.0f);
+	ImGui::DragFloat("DL Attenuation A", &this->light.attenuation_a, 0.01f, 0.1f, 1.0f);
+	ImGui::DragFloat("DL Attenuation B", &this->light.attenuation_b, 0.01f, 0.0f, 1.0f);
+	ImGui::DragFloat("DL Attenuation C", &this->light.attenuation_c, 0.01f, 0.0f, 1.0f);
+	ImGui::End();
 
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
