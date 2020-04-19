@@ -35,12 +35,7 @@ bool Graphics::Initialize(HWND hwnd, int width, int height)
 
 void Graphics::RenderFrame()
 {
-	this->cb_ps_Light.data.dynamicLightColor = light.lightColor;
-	this->cb_ps_Light.data.dynamicLightStrength = light.lightStrength;
 	this->cb_ps_Light.data.dynamicLightPosition = light.GetPosition();
-	this->cb_ps_Light.data.dynamicLightAttenuation_a = light.attenuation_a;
-	this->cb_ps_Light.data.dynamicLightAttenuation_b = light.attenuation_b;
-	this->cb_ps_Light.data.dynamicLightAttenuation_c = light.attenuation_c;
 
 	this->cb_ps_Light.ApplyChanges();
 	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_Light.GetAddressOf());
@@ -75,7 +70,6 @@ void Graphics::RenderFrame()
 	}
 
 	this->deviceContext->PSSetShader(pixelshader_nolight.GetShader(), NULL, 0);
-	this->light.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
 
 #pragma region DrawText
 	static int fpsCounter = 0;
@@ -116,15 +110,15 @@ void Graphics::RenderFrame()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
-	ImGui::Begin("Light Controls");
-	ImGui::DragFloat3("AL Color", &this->cb_ps_Light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
-	ImGui::DragFloat("AL Strength", &this->cb_ps_Light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
-	ImGui::DragFloat3("DL Color", &this->light.lightColor.x, 0.01f, 0.0f, 1.0f);
-	ImGui::DragFloat("DL Strength", &this->light.lightStrength, 1.0f, 0.0f, 100.0f);
-	ImGui::DragFloat("DL Attenuation A", &this->light.attenuation_a, 0.01f, 0.1f, 1.0f);
-	ImGui::DragFloat("DL Attenuation B", &this->light.attenuation_b, 0.01f, 0.0f, 1.0f);
-	ImGui::DragFloat("DL Attenuation C", &this->light.attenuation_c, 0.01f, 0.0f, 1.0f);
-	ImGui::End();
+	//ImGui::Begin("Light Controls");
+	//ImGui::DragFloat3("AL Color", &this->cb_ps_Light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
+	//ImGui::DragFloat("AL Strength", &this->cb_ps_Light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
+	//ImGui::DragFloat3("DL Color", &this->light.lightColor.x, 0.01f, 0.0f, 1.0f);
+	//ImGui::DragFloat("DL Strength", &this->light.lightStrength, 1.0f, 0.0f, 100.0f);
+	//ImGui::DragFloat("DL Attenuation A", &this->light.attenuation_a, 0.01f, 0.1f, 1.0f);
+	//ImGui::DragFloat("DL Attenuation B", &this->light.attenuation_b, 0.01f, 0.0f, 1.0f);
+	//ImGui::DragFloat("DL Attenuation C", &this->light.attenuation_c, 0.01f, 0.0f, 1.0f);
+	//ImGui::End();
 
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -333,12 +327,24 @@ bool Graphics::InitializeScene()
 		hr = cb_ps_Light.Initialize(this->device.Get(), this->deviceContext.Get());
 		COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
 
-		this->cb_ps_Light.data.ambientLightColor = Vector3(1.0f, 1.0f, 1.0f);
-		this->cb_ps_Light.data.ambientLightStrength = 1.0f;
-
 		//Initialize model(s)
 		if (!mainObject.Initialize("Data\\Objects\\Samples\\orange_embeddedtexture.fbx",this->device.Get(), this->deviceContext.Get(), this->cb_vs_VertexShader))
 			return false;
+
+		if (!light.Initialize(1.0f, 100.0f))
+			return false;
+
+
+		this->cb_ps_Light.data.ambientLightColor = light.GetAmbientColor();
+		this->cb_ps_Light.data.ambientLightStrength = light.GetAmbientStrength();
+		this->cb_ps_Light.data.dynamicLightColor = light.GetDiffuseColor();
+		this->cb_ps_Light.data.dynamicLightStrength = light.GetDiffuseStrength();
+		this->cb_ps_Light.data.dynamicLightPosition = light.GetPosition();
+		auto attenuation = light.GetAttenuation();
+		this->cb_ps_Light.data.dynamicLightAttenuation_a = attenuation.x;
+		this->cb_ps_Light.data.dynamicLightAttenuation_b = attenuation.y;
+		this->cb_ps_Light.data.dynamicLightAttenuation_c = attenuation.z;
+
 		const float orangeScale = 1.8f;
 		float mainStartSize = 0.5f;
 		mainObject.SetScale(orangeScale, orangeScale, orangeScale);
@@ -427,9 +433,6 @@ bool Graphics::InitializeScene()
 		if (!mainPlane.Initialize(this->device.Get(), this->deviceContext.Get(), this->cb_vs_VertexShader))
 			return false;
 
-		if (!light.Initialize(this->device.Get(),this->deviceContext.Get(), this->cb_vs_VertexShader))
-			return false;
-		light.SetPosition(0, 60, 0);
 
 		camera.SetProjectionValues(90.0f, static_cast<float>(windowWidth) / static_cast<float>(windowHeight), 0.1f, 10000.0f);
 	}
