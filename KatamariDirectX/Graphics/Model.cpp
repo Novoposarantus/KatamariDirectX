@@ -3,12 +3,10 @@
 bool Model::Initialize(
 	const std::string& filePath,
 	ID3D11Device* device, 
-	ID3D11DeviceContext* deviceContext, 
-	ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader)
+	ID3D11DeviceContext* deviceContext)
 {
 	this->device = device;
 	this->deviceContext = deviceContext;
-	this->cb_vs_vertexshader = &cb_vs_vertexshader;
 
 	try
 	{
@@ -26,16 +24,39 @@ bool Model::Initialize(
 }
 
 
-void Model::Draw(const DirectX::SimpleMath::Matrix& worldMatrix, const DirectX::SimpleMath::Matrix& viewProjectionMatrix)
+void Model::Draw(
+	ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader,
+	const DirectX::SimpleMath::Matrix& worldMatrix, 
+	const DirectX::SimpleMath::Matrix& viewProjectionMatrix,
+	const DirectX::SimpleMath::Matrix& viewProjectionLightMatrix
+)
 {
-	this->deviceContext->VSSetConstantBuffers(0, 1, this->cb_vs_vertexshader->GetAddressOf());
+	this->deviceContext->VSSetConstantBuffers(0, 1, cb_vs_vertexshader.GetAddressOf());
 
 	for (int i = 0; i < meshes.size(); i++)
 	{
 		//Update Constant buffer with WVP Matrix
-		this->cb_vs_vertexshader->data.wvpMatrix = meshes[i].GetTransformMatrix() *  worldMatrix * viewProjectionMatrix; //Calculate World-View-Projection Matrix
-		this->cb_vs_vertexshader->data.worldMatrix = meshes[i].GetTransformMatrix() * worldMatrix; //Calculate World-Projection Matrix
-		this->cb_vs_vertexshader->ApplyChanges();
+		cb_vs_vertexshader.data.wvpMatrix = meshes[i].GetTransformMatrix() *  worldMatrix * viewProjectionMatrix; //Calculate World-View-Projection Matrix
+		cb_vs_vertexshader.data.worldMatrix = meshes[i].GetTransformMatrix() * worldMatrix; //Calculate World-Projection Matrix
+		cb_vs_vertexshader.data.worldMatrix = cb_vs_vertexshader.data.worldMatrix * viewProjectionLightMatrix;
+		cb_vs_vertexshader.ApplyChanges();
+		meshes[i].Draw();
+	}
+}
+
+void Model::Draw(
+	ConstantBuffer<CB_VS_DEPTH>& cb_vs_depthvertexshader,
+	const DirectX::SimpleMath::Matrix& worldMatrix,
+	const DirectX::SimpleMath::Matrix& viewProjectionLightMatrix
+)
+{
+	this->deviceContext->VSSetConstantBuffers(0, 1, cb_vs_depthvertexshader.GetAddressOf());
+
+	for (int i = 0; i < meshes.size(); i++)
+	{
+		//Update Constant buffer with WVP Matrix
+		cb_vs_depthvertexshader.data.WVP = meshes[i].GetTransformMatrix() * worldMatrix * viewProjectionLightMatrix; //Calculate World-View-Projection Matrix
+		cb_vs_depthvertexshader.ApplyChanges();
 		meshes[i].Draw();
 	}
 }

@@ -35,41 +35,17 @@ bool Graphics::Initialize(HWND hwnd, int width, int height)
 
 void Graphics::RenderFrame()
 {
+
+	light.GenerateViewMatrix();
+
 	this->cb_ps_Light.data.dynamicLightPosition = light.GetPosition();
-
+	this->cb_vs_VertexShader.data.lightPosition = light.GetPosition();
 	this->cb_ps_Light.ApplyChanges();
-	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_Light.GetAddressOf());
 
-	float bgcolor[] = { 0.0, 0.0f, 0.0f, 1.0f };
-	this->deviceContext->ClearRenderTargetView(this->renderTargetView.Get(), bgcolor);
-	this->deviceContext->ClearDepthStencilView(this->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	RenderToRexture();
 
-	this->deviceContext->IASetInputLayout(this->vertexshader.GetInputLayout());
-	this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	this->deviceContext->RSSetState(this->rasterizerState.Get());
-	this->deviceContext->OMSetDepthStencilState(this->depthStencilState.Get(), 0);
-	this->deviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
-	this->deviceContext->PSSetSamplers(0, 1, this->samplerState.GetAddressOf());
-	this->deviceContext->VSSetShader(vertexshader.GetShader(), NULL, 0);
-	this->deviceContext->PSSetShader(pixelshader.GetShader(), NULL, 0);
+	RenderToWindow();
 
-	UINT offset = 0;
-
-	this->mainObject.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
-	this->mainPlane.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
-	for (int i = 0; i < this->gameObjects.size(); i++)
-	{
-		 if (	!this->gameObjects[i].IsAttachedToMain() 
-			 && this->gameObjects[i].CanAttach(this->mainObjectSize) 
-			 && this->gameObjects[i].CheckColision(this->mainObject))
-		{
-			this->gameObjects[i].AttachToMain(&this->mainObject);
-			this->mainObjectSize += this->gameObjects[i].GetSize() / 2;
-		}
-		this->gameObjects[i].Draw(camera.GetViewMatrix()* camera.GetProjectionMatrix());
-	}
-
-	this->deviceContext->PSSetShader(pixelshader_nolight.GetShader(), NULL, 0);
 
 #pragma region DrawText
 	static int fpsCounter = 0;
@@ -127,6 +103,85 @@ void Graphics::RenderFrame()
 #pragma endregion
 
 	this->swapchain->Present(1, NULL);
+}
+
+void Graphics::RenderToRexture()
+{
+	Matrix WVP;
+
+	//”казываем что нужно рендерить в текстуру
+	renderTexture->SetRenderTarget(this->deviceContext.Get());
+	// ќчищаем ее
+	renderTexture->ClearRenderTarget(this->deviceContext.Get(), 0.0f, 0.0f, 0.0f, 1.0f);
+
+	this->deviceContext->ClearDepthStencilView(this->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	this->deviceContext->IASetInputLayout(this->depthVertexShader.GetInputLayout());
+	this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	this->deviceContext->RSSetState(this->rasterizerState.Get());
+	this->deviceContext->OMSetDepthStencilState(this->depthStencilState.Get(), 0);
+	this->deviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
+	this->deviceContext->PSSetSamplers(0, 1, this->samplerState.GetAddressOf());
+	this->deviceContext->VSSetShader(depthVertexShader.GetShader(), NULL, 0);
+	this->deviceContext->PSSetShader(depthPixelShader.GetShader(), NULL, 0);
+
+	UINT offset = 0;
+
+	this->mainObject.Draw(this->cb_ps_depth, light.GetViewMatrix() * light.GetProjectionMatrix());
+	this->mainPlane.Draw(this->cb_ps_depth, light.GetViewMatrix() * light.GetProjectionMatrix());
+	for (int i = 0; i < this->gameObjects.size(); i++)
+	{
+		if (!this->gameObjects[i].IsAttachedToMain()
+			&& this->gameObjects[i].CanAttach(this->mainObjectSize)
+			&& this->gameObjects[i].CheckColision(this->mainObject))
+		{
+			this->gameObjects[i].AttachToMain(&this->mainObject);
+			this->mainObjectSize += this->gameObjects[i].GetSize() / 2;
+		}
+		this->gameObjects[i].Draw(this->cb_ps_depth, light.GetViewMatrix() * light.GetProjectionMatrix());
+	}
+}
+
+void Graphics::RenderToWindow()
+{
+	// —брасываем render target (теперь снова будет рисовать на экран)
+	deviceContext->OMSetRenderTargets(1, renderTargetView.GetAddressOf(), depthStencilView.Get());
+	// —брасываем вьюпорт
+	deviceContext->RSSetViewports(1, &viewport);
+
+	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_Light.GetAddressOf());
+
+
+	float bgcolor[] = { 0.0, 0.0f, 0.0f, 1.0f };
+	this->deviceContext->ClearRenderTargetView(this->renderTargetView.Get(), bgcolor);
+	this->deviceContext->ClearDepthStencilView(this->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	this->deviceContext->IASetInputLayout(this->vertexshader.GetInputLayout());
+	this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	this->deviceContext->RSSetState(this->rasterizerState.Get());
+	this->deviceContext->OMSetDepthStencilState(this->depthStencilState.Get(), 0);
+	this->deviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
+	this->deviceContext->PSSetSamplers(0, 1, this->samplerState.GetAddressOf());
+	this->deviceContext->PSSetSamplers(1, 1, this->depthSamplerState.GetAddressOf());
+	this->deviceContext->PSSetShaderResources(1, 1, this->renderTexture->GetShaderResourceViewAddress());
+	this->deviceContext->VSSetShader(vertexshader.GetShader(), NULL, 0);
+	this->deviceContext->PSSetShader(pixelshader.GetShader(), NULL, 0);
+
+	UINT offset = 0;
+
+	this->mainObject.Draw(this->cb_vs_VertexShader, camera.GetViewMatrix() * camera.GetProjectionMatrix(), light.GetViewMatrix() * light.GetProjectionMatrix());
+	this->mainPlane.Draw(this->cb_vs_VertexShader, camera.GetViewMatrix() * camera.GetProjectionMatrix(), light.GetViewMatrix() * light.GetProjectionMatrix());
+	for (int i = 0; i < this->gameObjects.size(); i++)
+	{
+		if (!this->gameObjects[i].IsAttachedToMain()
+			&& this->gameObjects[i].CanAttach(this->mainObjectSize)
+			&& this->gameObjects[i].CheckColision(this->mainObject))
+		{
+			this->gameObjects[i].AttachToMain(&this->mainObject);
+			this->mainObjectSize += this->gameObjects[i].GetSize() / 2;
+		}
+		this->gameObjects[i].Draw(this->cb_vs_VertexShader, camera.GetViewMatrix() * camera.GetProjectionMatrix(), light.GetViewMatrix() * light.GetProjectionMatrix());
+	}
 }
 
 bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
@@ -217,7 +272,12 @@ bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
 		COM_ERROR_IF_FAILED(hr, "Failed to create depth stencil state.");
 
 		//Create the Viewport
-		CD3D11_VIEWPORT viewport(0.0f, 0.0f, static_cast<float>(this->windowWidth), static_cast<float>(this->windowHeight));
+		viewport.Width = static_cast<float>(this->windowWidth);
+		viewport.Height = static_cast<float>(this->windowHeight);
+		viewport.MinDepth = 0.0f;
+		viewport.MaxDepth = 1.0f;
+		viewport.TopLeftX = 0.0f;
+		viewport.TopLeftY = 0.0f;
 
 		//Set the Viewport
 		this->deviceContext->RSSetViewports(1, &viewport);
@@ -270,6 +330,16 @@ bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
 		sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 		hr = this->device->CreateSamplerState(&sampDesc, this->samplerState.GetAddressOf()); //Create sampler state
 		COM_ERROR_IF_FAILED(hr, "Failed to create sampler state.");
+
+		sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+		sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+		sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+		hr = this->device->CreateSamplerState(&sampDesc, this->depthSamplerState.GetAddressOf()); //Create sampler state
+		COM_ERROR_IF_FAILED(hr, "Failed to create depth sampler state.");
+
+		renderTexture = new RenderTarget();
+		if (!renderTexture->Init(device.Get(), 1.0f, 100.0f))
+			return false;
 	}
 	catch (COMException & exception)
 	{
@@ -283,12 +353,35 @@ bool Graphics::InitializeShaders()
 {
 	ShaderFolder();
 
+	// инициализаци€ Depth shader
+	D3D11_INPUT_ELEMENT_DESC layoutDepthshaderDesc[] =
+	{
+		{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0}
+	};
+
+
+	if (!depthVertexShader.Initialize(
+		this->device,
+		shaderFolder + L"DepthVertexShader.cso",
+		layoutDepthshaderDesc,
+		ARRAYSIZE(layoutDepthshaderDesc)))
+	{
+		return false;
+	}
+
+	if (!depthPixelShader.Initialize(this->device, shaderFolder + L"DepthPixelShader.cso"))
+	{
+		return false;
+	}
+	//end инициализаци€ Depth shader
+
 	D3D11_INPUT_ELEMENT_DESC layoutDesc[] =
 	{
-		{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
 		{"TEXCOORD", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
 		{"NORMAL", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
 		{"WORLD_POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"WORLD_VIEW_POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_FLOAT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
 	};
 
 	UINT numElements = ARRAYSIZE(layoutDesc);
@@ -307,11 +400,6 @@ bool Graphics::InitializeShaders()
 		return false;
 	}
 
-	if (!pixelshader_nolight.Initialize(this->device, shaderFolder + L"PixelShader_NoLigth.cso"))
-	{
-		return false;
-	}
-
 	return true;
 }
 
@@ -322,10 +410,13 @@ bool Graphics::InitializeScene()
 		camera.SetParent(&this->mainObject);
 		//Initialize Constant Buffer
 		auto hr = cb_vs_VertexShader.Initialize(this->device.Get(), this->deviceContext.Get());
-		COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
+		COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer cb_vs_VertexShader.");
 
 		hr = cb_ps_Light.Initialize(this->device.Get(), this->deviceContext.Get());
-		COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
+		COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer cb_ps_Light.");
+
+		hr = cb_ps_depth.Initialize(this->device.Get(), this->deviceContext.Get());
+		COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer cb_ps_depth.");
 
 		//Initialize model(s)
 		if (!mainObject.Initialize("Data\\Objects\\Samples\\orange_embeddedtexture.fbx",this->device.Get(), this->deviceContext.Get(), this->cb_vs_VertexShader))
@@ -430,7 +521,7 @@ bool Graphics::InitializeScene()
 		}
 
 		//Initialize model(s)
-		if (!mainPlane.Initialize(this->device.Get(), this->deviceContext.Get(), this->cb_vs_VertexShader))
+		if (!mainPlane.Initialize(this->device.Get(), this->deviceContext.Get()))
 			return false;
 
 

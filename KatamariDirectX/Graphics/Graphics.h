@@ -12,12 +12,15 @@
 #include "ImGui/imgui_impl_win32.h"
 #include "ImGui/imgui_impl_dx11.h"
 #include "Light.h"
+#include "RenderTarget.h"
 
 class Graphics
 {
 public:
 	bool Initialize(HWND hwnd, int width, int height);
 	void RenderFrame();
+	void RenderToRexture();
+	void RenderToWindow();
 	Camera camera;
 	std::vector<RenderableGameObject> gameObjects;
 	RenderableGameObject mainObject;
@@ -37,15 +40,19 @@ private:
 
 	VertexShader vertexshader;
 	PixelShader pixelshader;
-	PixelShader pixelshader_nolight;
 	ConstantBuffer<CB_VS_VertexShader> cb_vs_VertexShader;
 	ConstantBuffer<CB_PS_Light> cb_ps_Light;
 
+	VertexShader depthVertexShader;
+	PixelShader depthPixelShader;
+	ConstantBuffer<CB_VS_DEPTH> cb_ps_depth;
 
-	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> depthStencilView;
+	RenderTarget* renderTexture;
+
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilView>depthStencilView;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> depthStencilBuffer;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilState;
-
+	CD3D11_VIEWPORT viewport;
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerState;
 	//Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerState_CullFront;
 	Microsoft::WRL::ComPtr<ID3D11BlendState> blendState;
@@ -55,6 +62,7 @@ private:
 	std::unique_ptr<DirectX::SpriteFont> spriteFont;
 
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> depthSamplerState;
 
 	int windowWidth = 0;
 	int windowHeight = 0;

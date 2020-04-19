@@ -8,7 +8,7 @@ bool RenderableGameObject::Initialize(
 	ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader
 )
 {
-	if (!model.Initialize(filePath, device, deviceContext, cb_vs_vertexshader))
+	if (!model.Initialize(filePath, device, deviceContext))
 		return false;
 
 	this->SetPosition(0.0f, 0.0f, 0.0f);
@@ -18,13 +18,26 @@ bool RenderableGameObject::Initialize(
 	return true;
 }
 
-void RenderableGameObject::Draw(const Matrix& viewProjectionMatrix)
+void RenderableGameObject::Draw(
+	ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader, 
+	const Matrix& viewProjectionMatrix, const Matrix& viewProjectionLightMatrix)
 {
 	if (this->IsAttachedToMain())
 	{
 		this->UpdateWorldMatrix();
 	}
-	model.Draw(this->worldMatrix, viewProjectionMatrix);
+	model.Draw(cb_vs_vertexshader, this->worldMatrix, viewProjectionMatrix, viewProjectionLightMatrix);
+}
+
+void RenderableGameObject::Draw(
+	ConstantBuffer<CB_VS_DEPTH>& cb_vs_depthvertexshader,
+	const Matrix& viewProjectionLightMatrix)
+{
+	if (this->IsAttachedToMain())
+	{
+		this->UpdateWorldMatrix();
+	}
+	model.Draw(cb_vs_depthvertexshader, this->worldMatrix, viewProjectionLightMatrix);
 }
 
 void RenderableGameObject::UpdateWorldMatrix()
