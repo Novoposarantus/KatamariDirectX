@@ -36,96 +36,10 @@ bool Graphics::Initialize(HWND hwnd, int width, int height)
 void Graphics::RenderFrame()
 {
 	this->cb_ps_Light.data.dynamicLightPosition = light.GetPosition();
-
 	this->cb_ps_Light.ApplyChanges();
 	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_Light.GetAddressOf());
 
-	float bgcolor[] = { 0.0, 0.0f, 0.0f, 1.0f };
-	this->deviceContext->ClearRenderTargetView(this->renderTargetView.Get(), bgcolor);
-	this->deviceContext->ClearDepthStencilView(this->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-	this->deviceContext->IASetInputLayout(this->vertexshader.GetInputLayout());
-	this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	this->deviceContext->RSSetState(this->rasterizerState.Get());
-	this->deviceContext->OMSetDepthStencilState(this->depthStencilState.Get(), 0);
-	this->deviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
-	this->deviceContext->PSSetSamplers(0, 1, this->samplerState.GetAddressOf());
-	this->deviceContext->VSSetShader(vertexshader.GetShader(), NULL, 0);
-	this->deviceContext->PSSetShader(pixelshader.GetShader(), NULL, 0);
-
-	UINT offset = 0;
-
-	this->mainObject.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
-	this->mainPlane.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
-	for (int i = 0; i < this->gameObjects.size(); i++)
-	{
-		 if (	!this->gameObjects[i].IsAttachedToMain() 
-			 && this->gameObjects[i].CanAttach(this->mainObjectSize) 
-			 && this->gameObjects[i].CheckColision(this->mainObject))
-		{
-			this->gameObjects[i].AttachToMain(&this->mainObject);
-			this->mainObjectSize += this->gameObjects[i].GetSize() / 2;
-		}
-		this->gameObjects[i].Draw(camera.GetViewMatrix()* camera.GetProjectionMatrix());
-	}
-
-
-#pragma region DrawText
-	static int fpsCounter = 0;
-	fpsCounter += 1;
-	static std::string fpsStirng = "FPS: 0";
-	if (fpsTimer.GetMilisecondsElapsed() > 1000)
-	{
-		fpsStirng = "FPS: " + std::to_string(fpsCounter);
-		fpsCounter = 0;
-		fpsTimer.Restart();
-	}
-	spriteBatch->Begin();
-	spriteFont->DrawString(
-		spriteBatch.get(),
-		StringHelper::StringToWide(fpsStirng).c_str(),
-		DirectX::XMFLOAT2(0, 0),
-		DirectX::Colors::White,
-		0.0f,
-		DirectX::XMFLOAT2(0, 0),
-		DirectX::XMFLOAT2(1.0f, 1.0f)
-	);
-	spriteFont->DrawString(
-		spriteBatch.get(), 
-		L"Katamari damacy", 
-		DirectX::XMFLOAT2(0, 25), 
-		DirectX::Colors::White, 
-		0.0f, 
-		DirectX::XMFLOAT2(0, 0),
-		DirectX::XMFLOAT2(1.0f, 1.0f)
-	);
-
-	spriteBatch->End();
-#pragma endregion
-
-
-#pragma region ImGui
-	ImGui_ImplDX11_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
-
-	//ImGui::Begin("Light Controls");
-	//ImGui::DragFloat3("AL Color", &this->cb_ps_Light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
-	//ImGui::DragFloat("AL Strength", &this->cb_ps_Light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
-	//ImGui::DragFloat3("DL Color", &this->light.lightColor.x, 0.01f, 0.0f, 1.0f);
-	//ImGui::DragFloat("DL Strength", &this->light.lightStrength, 1.0f, 0.0f, 100.0f);
-	//ImGui::DragFloat("DL Attenuation A", &this->light.attenuation_a, 0.01f, 0.1f, 1.0f);
-	//ImGui::DragFloat("DL Attenuation B", &this->light.attenuation_b, 0.01f, 0.0f, 1.0f);
-	//ImGui::DragFloat("DL Attenuation C", &this->light.attenuation_c, 0.01f, 0.0f, 1.0f);
-	//ImGui::End();
-
-	ImGui::Render();
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-
-
-#pragma endregion
-
-	this->swapchain->Present(1, NULL);
+	this->RenderToWindow();
 }
 
 bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
@@ -357,7 +271,7 @@ bool Graphics::InitializeScene()
 		COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
 
 		//Initialize model(s)
-		if (!mainObject.Initialize("Data\\Objects\\Samples\\orange_embeddedtexture.fbx",this->device.Get(), this->deviceContext.Get(), this->cb_vs_VertexShader))
+		if (!mainObject.Initialize("Data\\Objects\\Samples\\orange_embeddedtexture.fbx",this->device.Get(), this->deviceContext.Get()))
 			return false;
 
 		if (!light.Initialize(1.0f, 100.0f))
@@ -380,66 +294,63 @@ bool Graphics::InitializeScene()
 		mainObject.SetSize(mainStartSize);
 		this->mainObjectSize = mainStartSize;
 
-		for (int i = 0; i < 20; ++i)
-		{
-			RenderableGameObject gameObject;
-			gameObject.Initialize(
-				"Data\\Objects\\Samples\\orange_embeddedtexture.fbx", 
-				this->device.Get(), 
-				this->deviceContext.Get(), 
-				this->cb_vs_VertexShader
-			);
-			float x = rand() % 200 - 100;
-			float z = rand() % 200 - 100; 
-			float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (0.7f - 0.2f)));
-			gameObject.SetPosition(x, 0, z);
-			gameObject.SetScale(orangeScale, orangeScale, orangeScale);
-			gameObject.SetSize(r);
-			gameObjects.push_back(gameObject);
-		}
+		//for (int i = 0; i < 20; ++i)
+		//{
+		//	RenderableGameObject gameObject;
+		//	gameObject.Initialize(
+		//		"Data\\Objects\\Samples\\orange_embeddedtexture.fbx", 
+		//		this->device.Get(), 
+		//		this->deviceContext.Get()
+		//	);
+		//	float x = rand() % 200 - 100;
+		//	float z = rand() % 200 - 100; 
+		//	float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (0.7f - 0.2f)));
+		//	gameObject.SetPosition(x, 0, z);
+		//	gameObject.SetScale(orangeScale, orangeScale, orangeScale);
+		//	gameObject.SetSize(r);
+		//	gameObjects.push_back(gameObject);
+		//}
 
-		const float nanusuitScaleMod = 0.09f;
+		//const float nanusuitScaleMod = 0.09f;
 
-		for (int i = 0; i < 10; ++i)
-		{
-			RenderableGameObject gameObject;
-			gameObject.Initialize(
-				"Data\\Objects\\nanosuit\\nanosuit.obj",
-				this->device.Get(),
-				this->deviceContext.Get(),
-				this->cb_vs_VertexShader
-			);
-			float x = rand() % 200 - 100;
-			float z = rand() % 200 - 100;
-			float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (3.0f - 0.2f)));
-			gameObject.SetPosition(x, 0, z);
-			gameObject.SetScale(nanusuitScaleMod, nanusuitScaleMod, nanusuitScaleMod);
-			gameObject.SetSize(r);
-			gameObjects.push_back(gameObject);
-		}
+		//for (int i = 0; i < 10; ++i)
+		//{
+		//	RenderableGameObject gameObject;
+		//	gameObject.Initialize(
+		//		"Data\\Objects\\nanosuit\\nanosuit.obj",
+		//		this->device.Get(),
+		//		this->deviceContext.Get()
+		//	);
+		//	float x = rand() % 200 - 100;
+		//	float z = rand() % 200 - 100;
+		//	float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (3.0f - 0.2f)));
+		//	gameObject.SetPosition(x, 0, z);
+		//	gameObject.SetScale(nanusuitScaleMod, nanusuitScaleMod, nanusuitScaleMod);
+		//	gameObject.SetSize(r);
+		//	gameObjects.push_back(gameObject);
+		//}
 
-		const float alocasiaScaleMod = 0.001f;
+		//const float alocasiaScaleMod = 0.001f;
 
-		for (int i = 0; i < 1; ++i)
-		{
-			RenderableGameObject gameObject;
-			gameObject.Initialize(
-				"Data\\Objects\\Alocasia\\01Alocasia_obj.obj",
-				this->device.Get(),
-				this->deviceContext.Get(),
-				this->cb_vs_VertexShader
-			);
-			float x = rand() % 200 - 100;
-			float z = rand() % 200 - 100;
-			float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (2.0f - 0.2f)));
-			gameObject.SetPosition(x, 0, z);
-			gameObject.SetScale(alocasiaScaleMod, alocasiaScaleMod, alocasiaScaleMod);
-			gameObject.SetSize(r);
-			gameObjects.push_back(gameObject);
-		}
+		//for (int i = 0; i < 1; ++i)
+		//{
+		//	RenderableGameObject gameObject;
+		//	gameObject.Initialize(
+		//		"Data\\Objects\\Alocasia\\01Alocasia_obj.obj",
+		//		this->device.Get(),
+		//		this->deviceContext.Get()
+		//	);
+		//	float x = rand() % 200 - 100;
+		//	float z = rand() % 200 - 100;
+		//	float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (2.0f - 0.2f)));
+		//	gameObject.SetPosition(x, 0, z);
+		//	gameObject.SetScale(alocasiaScaleMod, alocasiaScaleMod, alocasiaScaleMod);
+		//	gameObject.SetSize(r);
+		//	gameObjects.push_back(gameObject);
+		//}
 
 		//Initialize model(s)
-		if (!mainPlane.Initialize(this->device.Get(), this->deviceContext.Get(), this->cb_vs_VertexShader))
+		if (!mainPlane.Initialize(this->device.Get(), this->deviceContext.Get()))
 			return false;
 
 
@@ -451,4 +362,99 @@ bool Graphics::InitializeScene()
 		return false;
 	}
 	return true;
+}
+
+void Graphics::RenderToWindow()
+{
+	float bgcolor[] = { 0.0, 0.0f, 0.0f, 1.0f };
+	this->deviceContext->ClearRenderTargetView(this->renderTargetView.Get(), bgcolor);
+	this->deviceContext->ClearDepthStencilView(this->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	this->deviceContext->IASetInputLayout(this->vertexshader.GetInputLayout());
+	this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	this->deviceContext->RSSetState(this->rasterizerState.Get());
+	this->deviceContext->OMSetDepthStencilState(this->depthStencilState.Get(), 0);
+	this->deviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
+	this->deviceContext->PSSetSamplers(0, 1, this->samplerState.GetAddressOf());
+	this->deviceContext->PSSetSamplers(1, 1, this->depthsamplerState.GetAddressOf());
+	this->deviceContext->VSSetShader(vertexshader.GetShader(), NULL, 0);
+	this->deviceContext->PSSetShader(pixelshader.GetShader(), NULL, 0);
+
+	UINT offset = 0;
+
+	this->mainObject.Draw(this->cb_vs_VertexShader, camera.GetViewMatrix() * camera.GetProjectionMatrix());
+	this->mainPlane.Draw(this->cb_vs_VertexShader, camera.GetViewMatrix() * camera.GetProjectionMatrix());
+	for (int i = 0; i < this->gameObjects.size(); i++)
+	{
+		if (!this->gameObjects[i].IsAttachedToMain()
+			&& this->gameObjects[i].CanAttach(this->mainObjectSize)
+			&& this->gameObjects[i].CheckColision(this->mainObject))
+		{
+			this->gameObjects[i].AttachToMain(&this->mainObject);
+			this->mainObjectSize += this->gameObjects[i].GetSize() / 2;
+		}
+		this->gameObjects[i].Draw(this->cb_vs_VertexShader, camera.GetViewMatrix() * camera.GetProjectionMatrix());
+	}
+
+
+#pragma region DrawText
+	static int fpsCounter = 0;
+	fpsCounter += 1;
+	static std::string fpsStirng = "FPS: 0";
+	if (fpsTimer.GetMilisecondsElapsed() > 1000)
+	{
+		fpsStirng = "FPS: " + std::to_string(fpsCounter);
+		fpsCounter = 0;
+		fpsTimer.Restart();
+	}
+	spriteBatch->Begin();
+	spriteFont->DrawString(
+		spriteBatch.get(),
+		StringHelper::StringToWide(fpsStirng).c_str(),
+		DirectX::XMFLOAT2(0, 0),
+		DirectX::Colors::White,
+		0.0f,
+		DirectX::XMFLOAT2(0, 0),
+		DirectX::XMFLOAT2(1.0f, 1.0f)
+	);
+	spriteFont->DrawString(
+		spriteBatch.get(),
+		L"Katamari damacy",
+		DirectX::XMFLOAT2(0, 25),
+		DirectX::Colors::White,
+		0.0f,
+		DirectX::XMFLOAT2(0, 0),
+		DirectX::XMFLOAT2(1.0f, 1.0f)
+	);
+
+	spriteBatch->End();
+#pragma endregion
+
+#pragma region ImGui
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+
+	//ImGui::Begin("Light Controls");
+	//ImGui::DragFloat3("AL Color", &this->cb_ps_Light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
+	//ImGui::DragFloat("AL Strength", &this->cb_ps_Light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
+	//ImGui::DragFloat3("DL Color", &this->light.lightColor.x, 0.01f, 0.0f, 1.0f);
+	//ImGui::DragFloat("DL Strength", &this->light.lightStrength, 1.0f, 0.0f, 100.0f);
+	//ImGui::DragFloat("DL Attenuation A", &this->light.attenuation_a, 0.01f, 0.1f, 1.0f);
+	//ImGui::DragFloat("DL Attenuation B", &this->light.attenuation_b, 0.01f, 0.0f, 1.0f);
+	//ImGui::DragFloat("DL Attenuation C", &this->light.attenuation_c, 0.01f, 0.0f, 1.0f);
+	//ImGui::End();
+
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+
+#pragma endregion
+
+	this->swapchain->Present(1, NULL);
+}
+
+void Graphics::RenderToTexture()
+{
+	
 }

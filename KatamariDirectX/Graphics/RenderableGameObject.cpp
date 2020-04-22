@@ -4,11 +4,10 @@
 bool RenderableGameObject::Initialize(
 	const std::string& filePath, 
 	ID3D11Device* device, 
-	ID3D11DeviceContext* deviceContext, 
-	ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader
+	ID3D11DeviceContext* deviceContext
 )
 {
-	if (!model.Initialize(filePath, device, deviceContext, cb_vs_vertexshader))
+	if (!model.Initialize(filePath, device, deviceContext))
 		return false;
 
 	this->SetPosition(0.0f, 0.0f, 0.0f);
@@ -18,13 +17,22 @@ bool RenderableGameObject::Initialize(
 	return true;
 }
 
-void RenderableGameObject::Draw(const Matrix& viewProjectionMatrix)
+void RenderableGameObject::Draw(ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader, const Matrix& viewProjectionMatrix)
 {
 	if (this->IsAttachedToMain())
 	{
 		this->UpdateWorldMatrix();
 	}
-	model.Draw(this->worldMatrix, viewProjectionMatrix);
+	model.Draw(cb_vs_vertexshader, this->worldMatrix, viewProjectionMatrix);
+}
+
+void RenderableGameObject::Draw(ConstantBuffer<CB_VS_DEPTH>& cb_vs_vertexshader, const Matrix& viewProjectionMatrix)
+{
+	if (this->IsAttachedToMain())
+	{
+		this->UpdateWorldMatrix();
+	}
+	model.Draw(cb_vs_vertexshader, this->worldMatrix, viewProjectionMatrix);
 }
 
 void RenderableGameObject::UpdateWorldMatrix()

@@ -7,8 +7,7 @@ public:
 	bool Initialize(
 		const std::string& filePath, 
 		ID3D11Device* device, 
-		ID3D11DeviceContext* deviceContext, 
-		ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader
+		ID3D11DeviceContext* deviceContext
 	);
 
 	const Vector3 GetMaxDirection();
@@ -24,7 +23,8 @@ public:
 	void SetRotation(const Vector3& rot) override;
 	void SetRotation(float x, float y, float z) override;
 
-	void Draw(const Matrix& viewProjectionMatrix);
+	void Draw(ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader, const Matrix& viewProjectionMatrix);
+	void Draw(ConstantBuffer<CB_VS_DEPTH>& cb_vs_vertexshader, const Matrix& viewProjectionMatrix);
 
 protected:
 	void UpdateWorldMatrix() override;

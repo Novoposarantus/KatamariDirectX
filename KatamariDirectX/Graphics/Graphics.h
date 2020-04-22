@@ -29,6 +29,8 @@ private:
 	bool InitializeDirectX(HWND hwnd, int width, int height);
 	bool InitializeShaders();
 	bool InitializeScene();
+	void RenderToWindow();
+	void RenderToTexture();
 
 	Microsoft::WRL::ComPtr<ID3D11Device> device;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> deviceContext;
