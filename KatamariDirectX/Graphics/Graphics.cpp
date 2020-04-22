@@ -130,10 +130,20 @@ bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
 		COM_ERROR_IF_FAILED(hr, "Failed to create depth stencil state.");
 
 		//Create the Viewport
-		CD3D11_VIEWPORT viewport(0.0f, 0.0f, static_cast<float>(this->windowWidth), static_cast<float>(this->windowHeight));
 
+		viewport.Width = static_cast<float>(this->windowWidth);
+		viewport.Height = static_cast<float>(this->windowHeight);
+		viewport.MinDepth = 0.0f;
+		viewport.MaxDepth = 1.0f;
+		viewport.TopLeftX = 0.0f;
+		viewport.TopLeftY = 0.0f;
 		//Set the Viewport
 		this->deviceContext->RSSetViewports(1, &viewport);
+
+		renderTarget = new RenderTarget();
+		if (!renderTarget->Init(this->device.Get(), 1.0f, 100.0f))
+			return false;
+
 
 		//Create Rasterizer State
 		CD3D11_RASTERIZER_DESC rasterizerDesc(D3D11_DEFAULT);
@@ -366,6 +376,12 @@ bool Graphics::InitializeScene()
 
 void Graphics::RenderToWindow()
 {
+
+	// —брасываем render target (теперь снова будет рисовать на экран)
+	this->deviceContext->OMSetRenderTargets(1, this->renderTargetView.GetAddressOf(), this->depthStencilView.Get());
+	// —брасываем вьюпорт
+	this->deviceContext->RSSetViewports(1, &viewport);
+
 	float bgcolor[] = { 0.0, 0.0f, 0.0f, 1.0f };
 	this->deviceContext->ClearRenderTargetView(this->renderTargetView.Get(), bgcolor);
 	this->deviceContext->ClearDepthStencilView(this->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
@@ -375,8 +391,14 @@ void Graphics::RenderToWindow()
 	this->deviceContext->RSSetState(this->rasterizerState.Get());
 	this->deviceContext->OMSetDepthStencilState(this->depthStencilState.Get(), 0);
 	this->deviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
+
+	this->deviceContext->PSSetShaderResources(1, 1, renderTarget->GetShaderResourceViewAddress());
+
 	this->deviceContext->PSSetSamplers(0, 1, this->samplerState.GetAddressOf());
 	this->deviceContext->PSSetSamplers(1, 1, this->depthsamplerState.GetAddressOf());
+
+
+
 	this->deviceContext->VSSetShader(vertexshader.GetShader(), NULL, 0);
 	this->deviceContext->PSSetShader(pixelshader.GetShader(), NULL, 0);
 
@@ -456,5 +478,35 @@ void Graphics::RenderToWindow()
 
 void Graphics::RenderToTexture()
 {
-	
+	//”казываем что нужно рендерить в текстуру
+	renderTarget->SetRenderTarget(this->deviceContext.Get());
+	// ќчищаем ее
+	renderTarget->ClearRenderTarget(this->deviceContext.Get(), 0.0f, 0.0f, 0.0f, 1.0f);
+
+	float bgcolor[] = { 0.0, 0.0f, 0.0f, 1.0f };
+
+	this->deviceContext->IASetInputLayout(this->depthVertexshader.GetInputLayout());
+	this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	this->deviceContext->VSSetShader(depthVertexshader.GetShader(), NULL, 0);
+	this->deviceContext->PSSetShader(depthPixelshader.GetShader(), NULL, 0);
+
+
+
+	UINT offset = 0;
+
+	this->mainObject.Draw(this->cb_vs_depth, camera.GetViewMatrix() * camera.GetProjectionMatrix());
+	this->mainPlane.Draw(this->cb_vs_depth, camera.GetViewMatrix() * camera.GetProjectionMatrix());
+	for (int i = 0; i < this->gameObjects.size(); i++)
+	{
+		if (!this->gameObjects[i].IsAttachedToMain()
+			&& this->gameObjects[i].CanAttach(this->mainObjectSize)
+			&& this->gameObjects[i].CheckColision(this->mainObject))
+		{
+			this->gameObjects[i].AttachToMain(&this->mainObject);
+			this->mainObjectSize += this->gameObjects[i].GetSize() / 2;
+		}
+		this->gameObjects[i].Draw(this->cb_vs_depth, camera.GetViewMatrix() * camera.GetProjectionMatrix());
+	}
+
+	this->swapchain->Present(1, NULL);
 }

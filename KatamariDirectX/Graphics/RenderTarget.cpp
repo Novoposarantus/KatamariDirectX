@@ -114,6 +114,11 @@ ID3D11ShaderResourceView* RenderTarget::GetShaderResourceView()
 	return m_SRV.Get();
 }
 
+ID3D11ShaderResourceView** RenderTarget::GetShaderResourceViewAddress()
+{
+	return m_SRV.GetAddressOf();
+}
+
 XMMATRIX RenderTarget::GetProjectionMatrix()
 {
 	return m_projectionMatrix;

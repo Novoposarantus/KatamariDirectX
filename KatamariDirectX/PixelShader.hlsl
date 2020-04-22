@@ -20,8 +20,11 @@ struct PS_INPUT
     float3 inWorldPos : WORLD_POSITION;
 };
 
-Texture2D objTexture : TEXTURE : register(t0);
-SamplerState objSamplerState : SAMPLER : register(s0);
+Texture2D objTexture : register(t0);
+Texture2D depthMapTexture : register(t1);
+
+SamplerState objSamplerState : register(s0);
+SamplerState depthobjSamplerState : register(s1);
 
 float4 main(PS_INPUT input) : SV_Target
 {

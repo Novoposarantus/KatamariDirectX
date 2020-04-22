@@ -249,7 +249,7 @@
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\RenderTarget.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -257,9 +257,6 @@
       <Filter>Resource Files</Filter>
     </FxCompile>
     <FxCompile Include="PixelShader.hlsl">
-      <Filter>Resource Files</Filter>
-    </FxCompile>
-    <FxCompile Include="PixelShader_NoLigth.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
     <FxCompile Include="DepthPixelShader.hlsl">

@@ -12,6 +12,7 @@
 #include "ImGui/imgui_impl_win32.h"
 #include "ImGui/imgui_impl_dx11.h"
 #include "Light.h"
+#include "RenderTarget.h"
 
 class Graphics
 {
@@ -37,14 +38,17 @@ private:
 	Microsoft::WRL::ComPtr<IDXGISwapChain> swapchain;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> renderTargetView;
 
+	RenderTarget* renderTarget;
 	VertexShader vertexshader;
 	PixelShader pixelshader;
 	VertexShader depthVertexshader;
 	PixelShader depthPixelshader;
 	ConstantBuffer<CB_VS_VertexShader> cb_vs_VertexShader;
 	ConstantBuffer<CB_PS_Light> cb_ps_Light;
+	ConstantBuffer<CB_VS_DEPTH> cb_vs_depth;
 
 
+	CD3D11_VIEWPORT viewport;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> depthStencilView;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> depthStencilBuffer;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilState;

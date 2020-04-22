@@ -15,6 +15,7 @@ public:
 
 	// Получаем текстуру RT в виде shader resource view
 	ID3D11ShaderResourceView* GetShaderResourceView();
+	ID3D11ShaderResourceView** GetShaderResourceViewAddress();
 
 	XMMATRIX GetProjectionMatrix();
 

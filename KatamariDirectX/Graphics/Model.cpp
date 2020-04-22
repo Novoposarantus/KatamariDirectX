@@ -29,6 +29,8 @@ void Model::Draw(
 	const DirectX::SimpleMath::Matrix& worldMatrix, 
 	const DirectX::SimpleMath::Matrix& viewProjectionMatrix)
 {
+	CB_VS_VertexShader cb;
+
 	this->deviceContext->VSSetConstantBuffers(0, 1, cb_vs_vertexshader.GetAddressOf());
 
 	for (int i = 0; i < meshes.size(); i++)
@@ -46,6 +48,8 @@ void Model::Draw(
 	const DirectX::SimpleMath::Matrix& worldMatrix,
 	const DirectX::SimpleMath::Matrix& viewProjectionMatrix)
 {
+	CB_VS_DEPTH cb;
+
 	this->deviceContext->VSSetConstantBuffers(0, 1, cb_vs_vertexshader.GetAddressOf());
 
 	for (int i = 0; i < meshes.size(); i++)
