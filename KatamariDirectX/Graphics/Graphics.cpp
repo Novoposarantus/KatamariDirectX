@@ -69,7 +69,6 @@ void Graphics::RenderFrame()
 		this->gameObjects[i].Draw(camera.GetViewMatrix()* camera.GetProjectionMatrix());
 	}
 
-	this->deviceContext->PSSetShader(pixelshader_nolight.GetShader(), NULL, 0);
 
 #pragma region DrawText
 	static int fpsCounter = 0;
@@ -303,11 +302,6 @@ bool Graphics::InitializeShaders()
 	}
 
 	if (!pixelshader.Initialize(this->device, shaderFolder + L"PixelShader.cso"))
-	{
-		return false;
-	}
-
-	if (!pixelshader_nolight.Initialize(this->device, shaderFolder + L"PixelShader_NoLigth.cso"))
 	{
 		return false;
 	}
