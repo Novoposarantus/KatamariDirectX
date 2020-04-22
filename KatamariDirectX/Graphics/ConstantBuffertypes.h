@@ -25,3 +25,8 @@ struct CB_PS_Light
 	float dynamicLightAttenuation_b;
 	float dynamicLightAttenuation_c;
 };
+
+struct CB_VS_DEPTH
+{
+	DirectX::SimpleMath::Matrix WVP;
+};

@@ -282,6 +282,29 @@ bool Graphics::InitializeShaders()
 {
 	ShaderFolder();
 
+	D3D11_INPUT_ELEMENT_DESC layoutDepthDesc[] =
+	{
+		{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TEXTURE", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
+	};
+
+	UINT numDepthElements = ARRAYSIZE(layoutDepthDesc);
+
+	if (!depthVertexshader.Initialize(
+		this->device,
+		shaderFolder + L"DepthVertexShader.cso",
+		layoutDepthDesc,
+		numDepthElements))
+	{
+		return false;
+	}
+
+	if (!depthPixelshader.Initialize(this->device, shaderFolder + L"DepthPixelShader.cso"))
+	{
+		return false;
+	}
+
+
 	D3D11_INPUT_ELEMENT_DESC layoutDesc[] =
 	{
 		{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},

@@ -37,6 +37,8 @@ private:
 
 	VertexShader vertexshader;
 	PixelShader pixelshader;
+	VertexShader depthVertexshader;
+	PixelShader depthPixelshader;
 	ConstantBuffer<CB_VS_VertexShader> cb_vs_VertexShader;
 	ConstantBuffer<CB_PS_Light> cb_ps_Light;
 

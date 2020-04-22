@@ -11,7 +11,7 @@ struct VS_INPUT
 struct VS_OUTPUT
 {
     float4 position : SV_POSITION;
-    float4 depthPosition : TEXTURE0;
+    float4 depthPosition : TEXTURE;
 };
 
 VS_OUTPUT main(VS_INPUT input)
