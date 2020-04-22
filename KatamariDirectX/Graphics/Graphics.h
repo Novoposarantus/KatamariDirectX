@@ -56,6 +56,7 @@ private:
 	std::unique_ptr<DirectX::SpriteFont> spriteFont;
 
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> depthsamplerState;
 
 	int windowWidth = 0;
 	int windowHeight = 0;

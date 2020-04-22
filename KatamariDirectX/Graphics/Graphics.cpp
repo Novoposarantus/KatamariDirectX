@@ -264,11 +264,23 @@ bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
 
 		//Create sampler description for sampler state
 		CD3D11_SAMPLER_DESC sampDesc(D3D11_DEFAULT);
+		sampDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+		sampDesc.BorderColor[0] = 0.0f;
+		sampDesc.BorderColor[1] = 0.0f;
+		sampDesc.BorderColor[2] = 0.0f;
+		sampDesc.BorderColor[3] = 0.0f;
+		sampDesc.MinLOD = 0;
 		sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 		sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 		sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 		hr = this->device->CreateSamplerState(&sampDesc, this->samplerState.GetAddressOf()); //Create sampler state
 		COM_ERROR_IF_FAILED(hr, "Failed to create sampler state.");
+
+		sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+		sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+		sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+		hr = this->device->CreateSamplerState(&sampDesc, this->depthsamplerState.GetAddressOf()); //Create sampler state
+		COM_ERROR_IF_FAILED(hr, "Failed to create depth sampler state.");
 	}
 	catch (COMException & exception)
 	{
@@ -368,7 +380,7 @@ bool Graphics::InitializeScene()
 		mainObject.SetSize(mainStartSize);
 		this->mainObjectSize = mainStartSize;
 
-		for (int i = 0; i < 10; ++i)
+		for (int i = 0; i < 20; ++i)
 		{
 			RenderableGameObject gameObject;
 			gameObject.Initialize(
@@ -382,26 +394,6 @@ bool Graphics::InitializeScene()
 			float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (0.7f - 0.2f)));
 			gameObject.SetPosition(x, 0, z);
 			gameObject.SetScale(orangeScale, orangeScale, orangeScale);
-			gameObject.SetSize(r);
-			gameObjects.push_back(gameObject);
-		}
-
-		const float skullScaleMod = 0.05f;
-		for (int i = 0; i < 10; ++i)
-		{
-			RenderableGameObject gameObject;
-			gameObject.Initialize(
-				"Data\\Objects\\Skull\\12140_Skull_v3_L2.obj",
-				this->device.Get(),
-				this->deviceContext.Get(),
-				this->cb_vs_VertexShader
-			);
-			float x = rand() % 200 - 100;
-			float z = rand() % 200 - 100;
-			float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.0f - 0.2f)));
-			gameObject.SetPosition(x, 0, z);
-			gameObject.SetRotation(90, 0, 0);
-			gameObject.SetScale(skullScaleMod, skullScaleMod, skullScaleMod);
 			gameObject.SetSize(r);
 			gameObjects.push_back(gameObject);
 		}
