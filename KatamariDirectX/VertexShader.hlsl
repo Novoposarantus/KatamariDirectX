@@ -2,6 +2,9 @@ cbuffer cBuffer : register(b0)
 {
     row_major float4x4 wvpMatrix;
     row_major float4x4 worldMatrix;
+    row_major float4x4 wvplight;
+    float3 lightPos;
+    float padding;
 };
 
 struct VS_INPUT
@@ -14,9 +17,11 @@ struct VS_INPUT
 struct VS_OUTPUT
 {
 	float4 outPosition : SV_POSITION;
-    float2 outTexCoord : TEXCOORD;
+    float2 outTexCoord : TEXCOORD0;
     float3 outNormal : NORMAL;
     float3 outWorldPos : WORLD_POSITION;
+    float4 lightViewPosition : TEXCOORD1;
+    float3 lightPos : TEXCOORD2;
 };
 
 
@@ -25,8 +30,10 @@ VS_OUTPUT main(VS_INPUT input)
 	VS_OUTPUT output;
 	
     output.outPosition = mul(float4(input.inPos, 1.0f), wvpMatrix);
-	output.outTexCoord = input.inTexCoord;
+    output.outTexCoord = input.inTexCoord;
     output.outNormal = normalize(mul(float4(input.inNormal, 0.0f), worldMatrix));
     output.outWorldPos = mul(float4(input.inPos, 1.0f), worldMatrix);
+    output.lightPos = normalize(lightPos.xyz - output.outWorldPos.xyz);
+    output.lightViewPosition = mul(float4(input.inPos, 1.0f), wvplight);
 	return output;
 }

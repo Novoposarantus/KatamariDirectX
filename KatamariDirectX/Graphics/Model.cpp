@@ -27,7 +27,8 @@ bool Model::Initialize(
 void Model::Draw(
 	ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader,
 	const DirectX::SimpleMath::Matrix& worldMatrix, 
-	const DirectX::SimpleMath::Matrix& viewProjectionMatrix)
+	const DirectX::SimpleMath::Matrix& viewProjectionMatrix,
+	const DirectX::SimpleMath::Matrix& viewProjectionMatrixLight)
 {
 	CB_VS_VertexShader cb;
 
@@ -38,6 +39,7 @@ void Model::Draw(
 		//Update Constant buffer with WVP Matrix
 		cb_vs_vertexshader.data.wvpMatrix = meshes[i].GetTransformMatrix() *  worldMatrix * viewProjectionMatrix; //Calculate World-View-Projection Matrix
 		cb_vs_vertexshader.data.worldMatrix = meshes[i].GetTransformMatrix() * worldMatrix; //Calculate World-Projection Matrix
+		cb_vs_vertexshader.data.wvpLight = meshes[i].GetTransformMatrix() * viewProjectionMatrixLight;
 		cb_vs_vertexshader.ApplyChanges();
 		meshes[i].Draw();
 	}

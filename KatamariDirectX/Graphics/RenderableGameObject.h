@@ -23,7 +23,11 @@ public:
 	void SetRotation(const Vector3& rot) override;
 	void SetRotation(float x, float y, float z) override;
 
-	void Draw(ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader, const Matrix& viewProjectionMatrix);
+	void Draw(
+		ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader, 
+		const Matrix& viewProjectionMatrix,
+		const Matrix& viewProjectionMatrixLight
+	);
 	void Draw(ConstantBuffer<CB_VS_DEPTH>& cb_vs_vertexshader, const Matrix& viewProjectionMatrix);
 
 protected:

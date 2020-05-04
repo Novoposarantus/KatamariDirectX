@@ -2,9 +2,9 @@
 
 bool Light::Initialize(float screenNear, float screenDepth)
 {
-	this->SetPosition(0.0f, 60.0f, 0.0f);
-	this->SetAmbientColor(1.0f, 1.0f, 1.0f, 0.1f);
-	this->SetDiffuseColor(1.0f, 1.0f, 1.0f, 100.0f);
+	this->SetPosition(20.0f, 20.0f, 20.0f);
+	this->SetAmbientColor(1.0f, 1.0f, 1.0f, 0.3f);
+	this->SetDiffuseColor(1.0f, 1.0f, 1.0f, 200.0f);
 	this->SetLookAt(0.0f, 0.0f, 0.0f);
 	this->SetAttenuation(1.0f, 0.045f, 0.045f);
 	this->GenerateViewMatrix();

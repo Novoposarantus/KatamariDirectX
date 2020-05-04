@@ -37,7 +37,11 @@ void Graphics::RenderFrame()
 {
 	this->cb_ps_Light.data.dynamicLightPosition = light.GetPosition();
 	this->cb_ps_Light.ApplyChanges();
+	this->deviceContext->RSSetState(this->rasterizerState.Get());
+	this->cb_vs_VertexShader.data.lightPos = light.GetPosition();
 	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_Light.GetAddressOf());
+
+	this->RenderToTexture();
 
 	this->RenderToWindow();
 }
@@ -220,8 +224,9 @@ bool Graphics::InitializeShaders()
 
 	D3D11_INPUT_ELEMENT_DESC layoutDepthDesc[] =
 	{
-		{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"TEXTURE", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TEXCOORD", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"NORMAL", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0}
 	};
 
 	UINT numDepthElements = ARRAYSIZE(layoutDepthDesc);
@@ -245,8 +250,7 @@ bool Graphics::InitializeShaders()
 	{
 		{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
 		{"TEXCOORD", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"NORMAL", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"WORLD_POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"NORMAL", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0}
 	};
 
 	UINT numElements = ARRAYSIZE(layoutDesc);
@@ -278,6 +282,10 @@ bool Graphics::InitializeScene()
 		COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
 
 		hr = cb_ps_Light.Initialize(this->device.Get(), this->deviceContext.Get());
+		COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
+
+
+		hr = cb_vs_depth.Initialize(this->device.Get(), this->deviceContext.Get());
 		COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
 
 		//Initialize model(s)
@@ -388,7 +396,6 @@ void Graphics::RenderToWindow()
 
 	this->deviceContext->IASetInputLayout(this->vertexshader.GetInputLayout());
 	this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	this->deviceContext->RSSetState(this->rasterizerState.Get());
 	this->deviceContext->OMSetDepthStencilState(this->depthStencilState.Get(), 0);
 	this->deviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
 
@@ -404,8 +411,11 @@ void Graphics::RenderToWindow()
 
 	UINT offset = 0;
 
-	this->mainObject.Draw(this->cb_vs_VertexShader, camera.GetViewMatrix() * camera.GetProjectionMatrix());
-	this->mainPlane.Draw(this->cb_vs_VertexShader, camera.GetViewMatrix() * camera.GetProjectionMatrix());
+	auto lightWVP = light.GetViewMatrix() * light.GetProjectionMatrix();
+	auto camWVP = camera.GetViewMatrix() * camera.GetProjectionMatrix();
+
+	this->mainObject.Draw(this->cb_vs_VertexShader, camWVP, lightWVP);
+	this->mainPlane.Draw(this->cb_vs_VertexShader, camWVP, lightWVP);
 	for (int i = 0; i < this->gameObjects.size(); i++)
 	{
 		if (!this->gameObjects[i].IsAttachedToMain()
@@ -415,7 +425,7 @@ void Graphics::RenderToWindow()
 			this->gameObjects[i].AttachToMain(&this->mainObject);
 			this->mainObjectSize += this->gameObjects[i].GetSize() / 2;
 		}
-		this->gameObjects[i].Draw(this->cb_vs_VertexShader, camera.GetViewMatrix() * camera.GetProjectionMatrix());
+		this->gameObjects[i].Draw(this->cb_vs_VertexShader, camWVP, lightWVP);
 	}
 
 
@@ -457,15 +467,9 @@ void Graphics::RenderToWindow()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
-	//ImGui::Begin("Light Controls");
-	//ImGui::DragFloat3("AL Color", &this->cb_ps_Light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
-	//ImGui::DragFloat("AL Strength", &this->cb_ps_Light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
-	//ImGui::DragFloat3("DL Color", &this->light.lightColor.x, 0.01f, 0.0f, 1.0f);
-	//ImGui::DragFloat("DL Strength", &this->light.lightStrength, 1.0f, 0.0f, 100.0f);
-	//ImGui::DragFloat("DL Attenuation A", &this->light.attenuation_a, 0.01f, 0.1f, 1.0f);
-	//ImGui::DragFloat("DL Attenuation B", &this->light.attenuation_b, 0.01f, 0.0f, 1.0f);
-	//ImGui::DragFloat("DL Attenuation C", &this->light.attenuation_c, 0.01f, 0.0f, 1.0f);
-	//ImGui::End();
+	/*ImGui::Begin("Light Controls");
+	ImGui::DragFloat3("Light POS", &this->light.pos.x, 1.0f, -100.0f, 100.0f);
+	ImGui::End();*/
 
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -491,11 +495,10 @@ void Graphics::RenderToTexture()
 	this->deviceContext->PSSetShader(depthPixelshader.GetShader(), NULL, 0);
 
 
-
 	UINT offset = 0;
 
-	this->mainObject.Draw(this->cb_vs_depth, camera.GetViewMatrix() * camera.GetProjectionMatrix());
-	this->mainPlane.Draw(this->cb_vs_depth, camera.GetViewMatrix() * camera.GetProjectionMatrix());
+	this->mainObject.Draw(this->cb_vs_depth, light.GetViewMatrix() * light.GetProjectionMatrix());
+	this->mainPlane.Draw(this->cb_vs_depth, light.GetViewMatrix() * light.GetProjectionMatrix());
 	for (int i = 0; i < this->gameObjects.size(); i++)
 	{
 		if (!this->gameObjects[i].IsAttachedToMain()
@@ -505,8 +508,7 @@ void Graphics::RenderToTexture()
 			this->gameObjects[i].AttachToMain(&this->mainObject);
 			this->mainObjectSize += this->gameObjects[i].GetSize() / 2;
 		}
-		this->gameObjects[i].Draw(this->cb_vs_depth, camera.GetViewMatrix() * camera.GetProjectionMatrix());
+		this->gameObjects[i].Draw(this->cb_vs_depth, light.GetViewMatrix() * light.GetProjectionMatrix());
 	}
 
-	this->swapchain->Present(1, NULL);
 }

@@ -49,11 +49,15 @@ void MainPlane::SetTexture(ID3D11ShaderResourceView* texture)
 	this->texture = texture;
 }
 
-void MainPlane::Draw(ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader, const DirectX::SimpleMath::Matrix& viewProjectionMatrix)
+void MainPlane::Draw(
+	ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader, 
+	const DirectX::SimpleMath::Matrix& viewProjectionMatrix,
+	const DirectX::SimpleMath::Matrix& viewProjectionMatrixLight)
 {
 	//Update Constant buffer with WVP Matrix
 	cb_vs_vertexshader.data.wvpMatrix = this->worldMatrix * viewProjectionMatrix; //Calculate World-View-Projection Matrix
 	cb_vs_vertexshader.data.worldMatrix = this->worldMatrix; //Calculate World-View-Projection Matrix
+	cb_vs_vertexshader.data.wvpLight = viewProjectionMatrixLight; //Calculate World-View-Projection Matrix
 	cb_vs_vertexshader.ApplyChanges();
 	this->deviceContext->VSSetConstantBuffers(0, 1, cb_vs_vertexshader.GetAddressOf());
 

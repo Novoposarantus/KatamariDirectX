@@ -6,6 +6,9 @@ struct CB_VS_VertexShader
 {
 	DirectX::SimpleMath::Matrix wvpMatrix;
 	DirectX::SimpleMath::Matrix worldMatrix;
+	DirectX::SimpleMath::Matrix wvpLight;
+	DirectX::SimpleMath::Vector3 lightPos;
+	float padding;
 };
 
 struct CB_PS_Alpha

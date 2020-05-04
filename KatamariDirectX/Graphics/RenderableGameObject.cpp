@@ -17,13 +17,16 @@ bool RenderableGameObject::Initialize(
 	return true;
 }
 
-void RenderableGameObject::Draw(ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader, const Matrix& viewProjectionMatrix)
+void RenderableGameObject::Draw(
+	ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader, 
+	const Matrix& viewProjectionMatrix,
+	const Matrix& viewProjectionMatrixLight)
 {
 	if (this->IsAttachedToMain())
 	{
 		this->UpdateWorldMatrix();
 	}
-	model.Draw(cb_vs_vertexshader, this->worldMatrix, viewProjectionMatrix);
+	model.Draw(cb_vs_vertexshader, this->worldMatrix, viewProjectionMatrix, viewProjectionMatrixLight);
 }
 
 void RenderableGameObject::Draw(ConstantBuffer<CB_VS_DEPTH>& cb_vs_vertexshader, const Matrix& viewProjectionMatrix)

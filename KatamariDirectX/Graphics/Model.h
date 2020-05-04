@@ -14,7 +14,8 @@ public:
 	void Draw(
 		ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader, 
 		const DirectX::SimpleMath::Matrix& worldMatrix, 
-		const DirectX::SimpleMath::Matrix& viewProjectionMatrix);
+		const DirectX::SimpleMath::Matrix& viewProjectionMatrix,
+		const DirectX::SimpleMath::Matrix& viewProjectionMatrixLight);
 	void Draw(
 		ConstantBuffer<CB_VS_DEPTH>& cb_vs_vertexshader,
 		const DirectX::SimpleMath::Matrix& worldMatrix,
