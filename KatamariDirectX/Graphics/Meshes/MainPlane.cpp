@@ -51,11 +51,11 @@ void MainPlane::SetTexture(ID3D11ShaderResourceView* texture)
 
 void MainPlane::Draw(ConstantBuffer<CB_VS_Mesh_Transform>& cb_vs_vertexshader)
 {
+	this->deviceContext->VSSetConstantBuffers(0, 1, cb_vs_vertexshader.GetAddressOf());
 	//Update Constant buffer with WVP Matrix
 	cb_vs_vertexshader.data.worldMatrix = this->worldMatrix;
 	cb_vs_vertexshader.data.meshTransformMatrix = DirectX::SimpleMath::Matrix::Identity;
 	cb_vs_vertexshader.ApplyChanges();
-	this->deviceContext->VSSetConstantBuffers(0, 1, cb_vs_vertexshader.GetAddressOf());
 
 	this->deviceContext->PSSetShaderResources(0, 1, &this->texture); //Set Texture
 	this->deviceContext->IASetIndexBuffer(this->indexBuffer.Get(), DXGI_FORMAT::DXGI_FORMAT_R32_UINT, 0);

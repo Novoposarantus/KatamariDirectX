@@ -10,7 +10,7 @@ bool RenderableGameObject::Initialize(
 	if (!model.Initialize(filePath, device, deviceContext))
 		return false;
 
-	this->SetPosition(0.0f, 0.0f, 0.0f);
+	this->SetPosition(0.0f, -0.1f, 0.0f);
 	this->SetRotation(0.0f, 0.0f, 0.0f);
 	this->rotMatrix = Matrix::CreateFromYawPitchRoll(rot.x, rot.y, rot.z);
 	this->UpdateWorldMatrix();

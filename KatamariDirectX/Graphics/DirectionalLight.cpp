@@ -3,7 +3,7 @@
 bool DirectionalLight::Initialize(float screenNear, float screenDepth)
 {
 	this->SetDirectionalColor(1.0f, 1.0f, 1.0f, 1.0f);
-	this->SetDirection(0.5, -1, 0);
+	this->SetDirection(-1, -1, 0);
 	this->GenerateProjectionMatrix(screenNear, screenDepth);
 	return true;
 }
@@ -50,7 +50,7 @@ void DirectionalLight::UpdateViewMatrix(Vector3 camPos)
 	float ShadowDinY = ShadowDinX;
 	float ShadowDinZ = 30;
 
-	Vector3 shadowCamPos = camPos - this->dir * 10;
+	Vector3 shadowCamPos = camPos - this->dir * 5;
 
 	this->viewMatrix = Matrix::CreateLookAt(
 		shadowCamPos,

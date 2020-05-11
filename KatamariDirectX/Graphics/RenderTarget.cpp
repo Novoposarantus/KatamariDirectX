@@ -1,7 +1,5 @@
 #include "RenderTarget.h"
 
-const int SHADOWMAP_WIDTH = 1024;
-const int SHADOWMAP_HEIGHT = 1024;
 
 RenderTarget::RenderTarget()
 {

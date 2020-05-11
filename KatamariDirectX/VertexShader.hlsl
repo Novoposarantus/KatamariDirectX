@@ -28,7 +28,7 @@ struct VS_OUTPUT
     float2 outTexCoord : TEXCOORD0;
     float3 outNormal : NORMAL;
     float3 outSpecColor : SPEC_COLOR;
-    float3 outShadowCoord : SHADDOW_TEXCOORD;
+    float4 outShadowCoord : SHADDOW_TEXCOORD;
 };
 
 
@@ -41,7 +41,7 @@ VS_OUTPUT main(VS_INPUT input)
     
     float4x4 mwshWVPMatrix = mul(mul(meshTransformMatrix, worldMatrix), camVPMatrix);
     float4x4 meshWorldMatrix = mul(meshTransformMatrix, worldMatrix);
-    float4x4 meshViewProjShadow = mul(meshTransformMatrix, camShadowVPMatrix);
+    float4x4 meshViewProjShadow = mul(mul(meshTransformMatrix, worldMatrix), camShadowVPMatrix);
     
 	
     output.outPositionWVP = mul(float4(input.inPos, 1.0f), mwshWVPMatrix);
@@ -49,7 +49,6 @@ VS_OUTPUT main(VS_INPUT input)
     output.outTexCoord = input.inTexCoord;
     output.outSpecColor = input.inSpecColor;
     output.outNormal = normalize(mul(float4(input.inNormal, 0.0f), meshWorldMatrix));
-    output.outShadowCoord = mul(meshViewProjShadow, float4(input.inPos, 1.0f)).xyz;
-    output.outShadowCoord.xy = float2(output.outShadowCoord.x * 0.5 + 0.5f, -output.outShadowCoord.y * 0.5 + 0.5f);
+    output.outShadowCoord = mul(float4(input.inPos, 1.0f), meshViewProjShadow);
     return output;
 }

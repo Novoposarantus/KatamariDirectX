@@ -1,13 +1,15 @@
 struct PS_INPUT
 {
-    float4 position : SV_POSITION;
-    float4 depthPosition : TEXCOORD;
+    float4 positionWVP : SV_POSITION;
+    float4 position : POSITION;
 };
+Texture2D objTexture : register(t0);
+SamplerState objSamplerState : register(s0);
 
 float4 main(PS_INPUT input) : SV_TARGET
 {
 	// Получаем значение глубины пикселя деля Z пикселя глубины на гомогенную координату W
-    float depthValue = input.depthPosition.z / input.depthPosition.w;
+    float depthValue = input.position.z / input.position.w;
 
     return float4(depthValue, depthValue, depthValue, 1.0f);
 }

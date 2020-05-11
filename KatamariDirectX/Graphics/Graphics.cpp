@@ -133,7 +133,7 @@ bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
 		this->deviceContext->RSSetViewports(1, &viewport);
 
 		renderTarget = new RenderTarget();
-		if (!renderTarget->Init(this->device.Get(), 1.0f, 100.0f))
+		if (!renderTarget->Init(this->device.Get(), 0.1f, 10000.0f))
 			return false;
 
 
@@ -214,7 +214,8 @@ bool Graphics::InitializeShaders()
 	{
 		{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
 		{"TEXCOORD", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"NORMAL", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0}
+		{"NORMAL", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"SPEC_COLOR", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0}
 	};
 
 	UINT numDepthElements = ARRAYSIZE(layoutDepthDesc);
@@ -297,24 +298,25 @@ bool Graphics::InitializeScene()
 		float mainStartSize = 0.5f;
 		mainObject.SetScale(orangeScale, orangeScale, orangeScale);
 		mainObject.SetSize(mainStartSize);
+		mainObject.SetPosition(0, -0.1, 0);
 		this->mainObjectSize = mainStartSize;
 
-		//for (int i = 0; i < 20; ++i)
-		//{
-		//	RenderableGameObject gameObject;
-		//	gameObject.Initialize(
-		//		"Data\\Objects\\Samples\\orange_embeddedtexture.fbx", 
-		//		this->device.Get(), 
-		//		this->deviceContext.Get()
-		//	);
-		//	float x = rand() % 200 - 100;
-		//	float z = rand() % 200 - 100; 
-		//	float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (0.7f - 0.2f)));
-		//	gameObject.SetPosition(x, 0, z);
-		//	gameObject.SetScale(orangeScale, orangeScale, orangeScale);
-		//	gameObject.SetSize(r);
-		//	gameObjects.push_back(gameObject);
-		//}
+		for (int i = 0; i < 20; ++i)
+		{
+			RenderableGameObject gameObject;
+			gameObject.Initialize(
+				"Data\\Objects\\Samples\\orange_embeddedtexture.fbx", 
+				this->device.Get(), 
+				this->deviceContext.Get()
+			);
+			float x = rand() % 200 - 100;
+			float z = rand() % 200 - 100; 
+			float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (0.7f - 0.2f)));
+			gameObject.SetPosition(x, 0, z);
+			gameObject.SetScale(orangeScale, orangeScale, orangeScale);
+			gameObject.SetSize(r);
+			gameObjects.push_back(gameObject);
+		}
 
 		//const float nanusuitScaleMod = 0.09f;
 
@@ -371,14 +373,14 @@ bool Graphics::InitializeScene()
 
 void Graphics::RenderFrame()
 {
-	this->directionalLight.UpdateViewMatrix(this->camera.GetPosition());
+	this->directionalLight.UpdateViewMatrix(this->mainObject.GetPosition());
 
 	this->cb_ps_Light.data.camPos = camera.GetPosition();
 	this->cb_ps_Light.ApplyChanges();
 	this->deviceContext->RSSetState(this->rasterizerState.Get());
 	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_Light.GetAddressOf());
 
-	//this->RenderToTexture();
+	this->RenderToTexture();
 
 	this->RenderToWindow();
 }
@@ -410,8 +412,6 @@ void Graphics::RenderToWindow()
 	this->deviceContext->VSSetShader(vertexshader.GetShader(), NULL, 0);
 	this->deviceContext->PSSetShader(pixelshader.GetShader(), NULL, 0);
 
-	UINT offset = 0;
-
 	this->deviceContext->VSSetConstantBuffers(1, 1, this->cb_vs_cam.GetAddressOf());
 	this->cb_vs_cam.data.camProjMatrix = camera.GetProjectionMatrix();
 	this->cb_vs_cam.data.camViewMatrix = camera.GetViewMatrix();
@@ -419,8 +419,8 @@ void Graphics::RenderToWindow()
 	this->cb_vs_cam.data.camShadowViewMatrix = directionalLight.GetViewMatrix();
 	this->cb_vs_cam.ApplyChanges();
 
-	this->mainObject.Draw(this->cb_vs_mesh_transform);
 	this->mainPlane.Draw(this->cb_vs_mesh_transform);
+	this->mainObject.Draw(this->cb_vs_mesh_transform);
 	for (int i = 0; i < this->gameObjects.size(); i++)
 	{
 		if (!this->gameObjects[i].IsAttachedToMain()
@@ -476,6 +476,8 @@ void Graphics::RenderToWindow()
 	auto camPosString = std::to_string(camPos.x) + "," + std::to_string(camPos.y) + "," + std::to_string(camPos.z);
 	ImGui::Begin("Light Controls");
 	ImGui::Text(camPosString.c_str());
+	auto texture = renderTarget->GetShaderResourceView();
+	ImGui::Image(renderTarget->GetShaderResourceView(), ImVec2(400, 400));
 	ImGui::End();
 
 	ImGui::Render();
@@ -494,23 +496,22 @@ void Graphics::RenderToTexture()
 	// Очищаем ее
 	renderTarget->ClearRenderTarget(this->deviceContext.Get(), 0.0f, 0.0f, 0.0f, 1.0f);
 
-	float bgcolor[] = { 0.0, 0.0f, 0.0f, 1.0f };
-
 	this->deviceContext->IASetInputLayout(this->depthVertexshader.GetInputLayout());
 	this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	this->deviceContext->OMSetDepthStencilState(this->depthStencilState.Get(), 0);
+	this->deviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
 	this->deviceContext->VSSetShader(depthVertexshader.GetShader(), NULL, 0);
 	this->deviceContext->PSSetShader(depthPixelshader.GetShader(), NULL, 0);
 
-
-	UINT offset = 0;
 
 	this->deviceContext->VSSetConstantBuffers(1, 1, this->cb_vs_depth.GetAddressOf());
 	this->cb_vs_depth.data.camShadowProjMatrix = this->directionalLight.GetProjectionMatrix();
 	this->cb_vs_depth.data.camShadowViewMatrix = this->directionalLight.GetViewMatrix();
 	this->cb_vs_depth.ApplyChanges();
 
-	this->mainObject.Draw(this->cb_vs_mesh_transform);
+
 	this->mainPlane.Draw(this->cb_vs_mesh_transform);
+	this->mainObject.Draw(this->cb_vs_mesh_transform);
 	for (int i = 0; i < this->gameObjects.size(); i++)
 	{
 		if (!this->gameObjects[i].IsAttachedToMain()
