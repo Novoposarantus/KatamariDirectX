@@ -53,34 +53,6 @@ void Engine::Update()
 		this->gfx.camera.Rotation(3 * dt, 0);
 	}
 
-	
-	if (keyboard.KeyIsPressed(VK_NUMPAD1))
-	{
-		this->gfx.light.AdjustPosition(0, 0, this->gfx.camera.GetSpeed() * dt);
-	}
-	if (keyboard.KeyIsPressed(VK_NUMPAD3))
-	{
-		this->gfx.light.AdjustPosition(0, 0, -this->gfx.camera.GetSpeed() * dt);
-	}
-
-	if (keyboard.KeyIsPressed(VK_NUMPAD4))
-	{
-		this->gfx.light.AdjustPosition(this->gfx.camera.GetSpeed() * dt,0,0);
-	}
-	if (keyboard.KeyIsPressed(VK_NUMPAD6))
-	{
-		this->gfx.light.AdjustPosition(-this->gfx.camera.GetSpeed() * dt, 0, 0);
-	}
-
-	if (keyboard.KeyIsPressed(VK_NUMPAD7))
-	{
-		this->gfx.light.AdjustPosition(0, this->gfx.camera.GetSpeed() * dt, 0 );
-	}
-	if (keyboard.KeyIsPressed(VK_NUMPAD9))
-	{
-		this->gfx.light.AdjustPosition(0, -this->gfx.camera.GetSpeed() * dt, 0);
-	}
-
 	auto mainObjectPos = Vector3(0, 0, 0);
 	auto mainObjectRot = Vector3(0, 0, 0);
 

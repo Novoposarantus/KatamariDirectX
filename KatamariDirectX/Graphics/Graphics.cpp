@@ -33,18 +33,6 @@ bool Graphics::Initialize(HWND hwnd, int width, int height)
 	return true;
 }
 
-void Graphics::RenderFrame()
-{
-	this->cb_ps_Light.data.dynamicLightPosition = light.GetPosition();
-	this->cb_ps_Light.ApplyChanges();
-	this->deviceContext->RSSetState(this->rasterizerState.Get());
-	this->cb_vs_VertexShader.data.lightPos = light.GetPosition();
-	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_Light.GetAddressOf());
-
-	this->RenderToTexture();
-
-	this->RenderToWindow();
-}
 
 bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
 {
@@ -250,7 +238,8 @@ bool Graphics::InitializeShaders()
 	{
 		{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
 		{"TEXCOORD", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"NORMAL", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0}
+		{"NORMAL", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"SPEC_COLOR", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0}
 	};
 
 	UINT numElements = ARRAYSIZE(layoutDesc);
@@ -278,7 +267,8 @@ bool Graphics::InitializeScene()
 
 		camera.SetParent(&this->mainObject);
 		//Initialize Constant Buffer
-		auto hr = cb_vs_VertexShader.Initialize(this->device.Get(), this->deviceContext.Get());
+
+		auto hr = cb_vs_cam.Initialize(this->device.Get(), this->deviceContext.Get());
 		COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
 
 		hr = cb_ps_Light.Initialize(this->device.Get(), this->deviceContext.Get());
@@ -288,23 +278,20 @@ bool Graphics::InitializeScene()
 		hr = cb_vs_depth.Initialize(this->device.Get(), this->deviceContext.Get());
 		COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
 
+
+		hr = cb_vs_mesh_transform.Initialize(this->device.Get(), this->deviceContext.Get());
+		COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
+
 		//Initialize model(s)
 		if (!mainObject.Initialize("Data\\Objects\\Samples\\orange_embeddedtexture.fbx",this->device.Get(), this->deviceContext.Get()))
 			return false;
 
-		if (!light.Initialize(1.0f, 100.0f))
+		if (!directionalLight.Initialize(0.5f, 100.0f))
 			return false;
 
-
-		this->cb_ps_Light.data.ambientLightColor = light.GetAmbientColor();
-		this->cb_ps_Light.data.ambientLightStrength = light.GetAmbientStrength();
-		this->cb_ps_Light.data.dynamicLightColor = light.GetDiffuseColor();
-		this->cb_ps_Light.data.dynamicLightStrength = light.GetDiffuseStrength();
-		this->cb_ps_Light.data.dynamicLightPosition = light.GetPosition();
-		auto attenuation = light.GetAttenuation();
-		this->cb_ps_Light.data.dynamicLightAttenuation_a = attenuation.x;
-		this->cb_ps_Light.data.dynamicLightAttenuation_b = attenuation.y;
-		this->cb_ps_Light.data.dynamicLightAttenuation_c = attenuation.z;
+		this->cb_ps_Light.data.directionalLightColor = directionalLight.GetDirectionalColor();
+		this->cb_ps_Light.data.directionalLightStrenght = directionalLight.GetDirectionalStrength();
+		this->cb_ps_Light.data.directionalLightDir = directionalLight.GetDirection();
 
 		const float orangeScale = 1.8f;
 		float mainStartSize = 0.5f;
@@ -382,6 +369,20 @@ bool Graphics::InitializeScene()
 	return true;
 }
 
+void Graphics::RenderFrame()
+{
+	this->directionalLight.UpdateViewMatrix(this->camera.GetPosition());
+
+	this->cb_ps_Light.data.camPos = camera.GetPosition();
+	this->cb_ps_Light.ApplyChanges();
+	this->deviceContext->RSSetState(this->rasterizerState.Get());
+	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_Light.GetAddressOf());
+
+	//this->RenderToTexture();
+
+	this->RenderToWindow();
+}
+
 void Graphics::RenderToWindow()
 {
 
@@ -411,11 +412,15 @@ void Graphics::RenderToWindow()
 
 	UINT offset = 0;
 
-	auto lightWVP = light.GetViewMatrix() * light.GetProjectionMatrix();
-	auto camWVP = camera.GetViewMatrix() * camera.GetProjectionMatrix();
+	this->deviceContext->VSSetConstantBuffers(1, 1, this->cb_vs_cam.GetAddressOf());
+	this->cb_vs_cam.data.camProjMatrix = camera.GetProjectionMatrix();
+	this->cb_vs_cam.data.camViewMatrix = camera.GetViewMatrix();
+	this->cb_vs_cam.data.camShadowProjMatrix = directionalLight.GetProjectionMatrix();
+	this->cb_vs_cam.data.camShadowViewMatrix = directionalLight.GetViewMatrix();
+	this->cb_vs_cam.ApplyChanges();
 
-	this->mainObject.Draw(this->cb_vs_VertexShader, camWVP, lightWVP);
-	this->mainPlane.Draw(this->cb_vs_VertexShader, camWVP, lightWVP);
+	this->mainObject.Draw(this->cb_vs_mesh_transform);
+	this->mainPlane.Draw(this->cb_vs_mesh_transform);
 	for (int i = 0; i < this->gameObjects.size(); i++)
 	{
 		if (!this->gameObjects[i].IsAttachedToMain()
@@ -425,7 +430,7 @@ void Graphics::RenderToWindow()
 			this->gameObjects[i].AttachToMain(&this->mainObject);
 			this->mainObjectSize += this->gameObjects[i].GetSize() / 2;
 		}
-		this->gameObjects[i].Draw(this->cb_vs_VertexShader, camWVP, lightWVP);
+		this->gameObjects[i].Draw(this->cb_vs_mesh_transform);
 	}
 
 
@@ -467,9 +472,11 @@ void Graphics::RenderToWindow()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
-	/*ImGui::Begin("Light Controls");
-	ImGui::DragFloat3("Light POS", &this->light.pos.x, 1.0f, -100.0f, 100.0f);
-	ImGui::End();*/
+	auto camPos = this->camera.GetPosition();
+	auto camPosString = std::to_string(camPos.x) + "," + std::to_string(camPos.y) + "," + std::to_string(camPos.z);
+	ImGui::Begin("Light Controls");
+	ImGui::Text(camPosString.c_str());
+	ImGui::End();
 
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -497,8 +504,13 @@ void Graphics::RenderToTexture()
 
 	UINT offset = 0;
 
-	this->mainObject.Draw(this->cb_vs_depth, light.GetViewMatrix() * light.GetProjectionMatrix());
-	this->mainPlane.Draw(this->cb_vs_depth, light.GetViewMatrix() * light.GetProjectionMatrix());
+	this->deviceContext->VSSetConstantBuffers(1, 1, this->cb_vs_depth.GetAddressOf());
+	this->cb_vs_depth.data.camShadowProjMatrix = this->directionalLight.GetProjectionMatrix();
+	this->cb_vs_depth.data.camShadowViewMatrix = this->directionalLight.GetViewMatrix();
+	this->cb_vs_depth.ApplyChanges();
+
+	this->mainObject.Draw(this->cb_vs_mesh_transform);
+	this->mainPlane.Draw(this->cb_vs_mesh_transform);
 	for (int i = 0; i < this->gameObjects.size(); i++)
 	{
 		if (!this->gameObjects[i].IsAttachedToMain()
@@ -508,7 +520,7 @@ void Graphics::RenderToTexture()
 			this->gameObjects[i].AttachToMain(&this->mainObject);
 			this->mainObjectSize += this->gameObjects[i].GetSize() / 2;
 		}
-		this->gameObjects[i].Draw(this->cb_vs_depth, light.GetViewMatrix() * light.GetProjectionMatrix());
+		this->gameObjects[i].Draw(this->cb_vs_mesh_transform);
 	}
 
 }

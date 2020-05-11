@@ -18,10 +18,9 @@ public:
 	void SetTexture(ID3D11ShaderResourceView* texture);
 	void Draw(
 		ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader, 
-		const DirectX::SimpleMath::Matrix& viewProjectionMatrix,
-		const DirectX::SimpleMath::Matrix& viewProjectionMatrixLight
+		const DirectX::SimpleMath::Matrix& viewProjectionMatrix
 	);
-	void Draw(ConstantBuffer<CB_VS_DEPTH>& cb_vs_vertexshader, const DirectX::SimpleMath::Matrix& viewProjectionMatrix);
+	void Draw(ConstantBuffer<CB_VS_Mesh_Transform>& cb_vs_vertexshader);
 
 private:
 

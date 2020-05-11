@@ -6,9 +6,26 @@ struct CB_VS_VertexShader
 {
 	DirectX::SimpleMath::Matrix wvpMatrix;
 	DirectX::SimpleMath::Matrix worldMatrix;
-	DirectX::SimpleMath::Matrix wvpLight;
-	DirectX::SimpleMath::Vector3 lightPos;
-	float padding;
+};
+
+struct CB_VS_Mesh_Transform 
+{
+	DirectX::SimpleMath::Matrix worldMatrix;
+	DirectX::SimpleMath::Matrix meshTransformMatrix;
+};
+
+struct CB_VS_DEPTH
+{
+	DirectX::SimpleMath::Matrix camShadowViewMatrix;
+	DirectX::SimpleMath::Matrix camShadowProjMatrix;
+};
+
+struct CB_VS_Cam
+{
+	DirectX::SimpleMath::Matrix camViewMatrix;
+	DirectX::SimpleMath::Matrix camProjMatrix;
+	DirectX::SimpleMath::Matrix camShadowViewMatrix;
+	DirectX::SimpleMath::Matrix camShadowProjMatrix;
 };
 
 struct CB_PS_Alpha
@@ -18,18 +35,10 @@ struct CB_PS_Alpha
 
 struct CB_PS_Light
 {
-	DirectX::SimpleMath::Vector3 ambientLightColor;
-	float ambientLightStrength;
-
-	DirectX::SimpleMath::Vector3 dynamicLightColor;
-	float dynamicLightStrength;
-	DirectX::SimpleMath::Vector3 dynamicLightPosition;
-	float dynamicLightAttenuation_a;
-	float dynamicLightAttenuation_b;
-	float dynamicLightAttenuation_c;
-};
-
-struct CB_VS_DEPTH
-{
-	DirectX::SimpleMath::Matrix WVP;
+	DirectX::SimpleMath::Vector3 directionalLightColor;
+	float directionalLightStrenght;
+	DirectX::SimpleMath::Vector3 directionalLightDir;
+	float dirPadding;
+	DirectX::SimpleMath::Vector3 camPos;
+	float posPadding;
 };

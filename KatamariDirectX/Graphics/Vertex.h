@@ -10,9 +10,11 @@ struct Vertex
 		: 
 		pos(x, y, z),
 		texCoord(u, v),
-		normal(nx, ny, nz)
+		normal(nx, ny, nz),
+		specColor(0, 0, 0)
 	{}
 	DirectX::SimpleMath::Vector3 pos;
 	DirectX::SimpleMath::Vector2 texCoord;
 	DirectX::SimpleMath::Vector3 normal;
+	DirectX::SimpleMath::Vector3 specColor;
 };

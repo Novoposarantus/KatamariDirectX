@@ -1,4 +1,5 @@
 #include "Model.h"
+#include <assimp/pbrmaterial.h>
 
 bool Model::Initialize(
 	const std::string& filePath,
@@ -24,39 +25,12 @@ bool Model::Initialize(
 }
 
 
-void Model::Draw(
-	ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader,
-	const DirectX::SimpleMath::Matrix& worldMatrix, 
-	const DirectX::SimpleMath::Matrix& viewProjectionMatrix,
-	const DirectX::SimpleMath::Matrix& viewProjectionMatrixLight)
+void Model::Draw(ConstantBuffer<CB_VS_Mesh_Transform>& cb_vs_vertexshader)
 {
-	CB_VS_VertexShader cb;
-
 	this->deviceContext->VSSetConstantBuffers(0, 1, cb_vs_vertexshader.GetAddressOf());
-
 	for (int i = 0; i < meshes.size(); i++)
 	{
-		//Update Constant buffer with WVP Matrix
-		cb_vs_vertexshader.data.wvpMatrix = meshes[i].GetTransformMatrix() *  worldMatrix * viewProjectionMatrix; //Calculate World-View-Projection Matrix
-		cb_vs_vertexshader.data.worldMatrix = meshes[i].GetTransformMatrix() * worldMatrix; //Calculate World-Projection Matrix
-		cb_vs_vertexshader.data.wvpLight = meshes[i].GetTransformMatrix() * viewProjectionMatrixLight;
-		cb_vs_vertexshader.ApplyChanges();
-		meshes[i].Draw();
-	}
-}
-
-void Model::Draw(
-	ConstantBuffer<CB_VS_DEPTH>& cb_vs_vertexshader,
-	const DirectX::SimpleMath::Matrix& worldMatrix,
-	const DirectX::SimpleMath::Matrix& viewProjectionMatrix)
-{
-	CB_VS_DEPTH cb;
-
-	this->deviceContext->VSSetConstantBuffers(0, 1, cb_vs_vertexshader.GetAddressOf());
-
-	for (int i = 0; i < meshes.size(); i++)
-	{
-		cb_vs_vertexshader.data.WVP = meshes[i].GetTransformMatrix() * worldMatrix * viewProjectionMatrix; //Calculate World-View-Projection Matrix
+		cb_vs_vertexshader.data.meshTransformMatrix = meshes[i].GetTransformMatrix();
 		cb_vs_vertexshader.ApplyChanges();
 		meshes[i].Draw();
 	}
@@ -119,6 +93,16 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene, const DirectX::Simpl
 	std::vector<Vertex> vertices;
 	std::vector<DWORD> indices;
 
+	std::vector<Texture> textures;
+	aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+
+	aiColor4D spec_color;
+	if (AI_SUCCESS != aiGetMaterialColor(material, AI_MATKEY_COLOR_SPECULAR,
+		&spec_color))
+	{
+		spec_color = aiColor4D(1.f, 1.f, 1.f, 1.f);
+	}
+
 	//Get vertices
 	for (UINT i = 0; i < mesh->mNumVertices; i++)
 	{
@@ -169,6 +153,8 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene, const DirectX::Simpl
 			vertex.texCoord.y = (float)mesh->mTextureCoords[0][i].y;
 		}
 
+		vertex.specColor = DirectX::SimpleMath::Vector3(spec_color.r, spec_color.g, spec_color.b);
+
 		vertices.push_back(vertex);
 	}
 
@@ -181,8 +167,6 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene, const DirectX::Simpl
 			indices.push_back(face.mIndices[j]);
 	}
 
-	std::vector<Texture> textures;
-	aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 	std::vector<Texture> diffuseTextures = LoadMaterialTextures(material, aiTextureType::aiTextureType_DIFFUSE, scene);
 	textures.insert(textures.end(), diffuseTextures.begin(), diffuseTextures.end());
 

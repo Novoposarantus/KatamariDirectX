@@ -27,6 +27,7 @@ public:
 	aiTextureType GetType();
 	ID3D11ShaderResourceView* GetTextureResourceView();
 	ID3D11ShaderResourceView** GetTextureResourceViewAddress();
+	DirectX::SimpleMath::Vector4 specularColor;
 
 private:
 	void Initialize1x1ColorTexture(ID3D11Device* device, const Color& colorData, aiTextureType type);

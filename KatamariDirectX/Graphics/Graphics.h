@@ -12,6 +12,7 @@
 #include "ImGui/imgui_impl_win32.h"
 #include "ImGui/imgui_impl_dx11.h"
 #include "Light.h"
+#include "DirectionalLight.h"
 #include "RenderTarget.h"
 
 class Graphics
@@ -24,7 +25,7 @@ public:
 	RenderableGameObject mainObject;
 	float mainObjectSize = 1;
 	MainPlane mainPlane;
-	Light light;
+	DirectionalLight directionalLight;
 
 private:
 	bool InitializeDirectX(HWND hwnd, int width, int height);
@@ -43,9 +44,10 @@ private:
 	PixelShader pixelshader;
 	VertexShader depthVertexshader;
 	PixelShader depthPixelshader;
-	ConstantBuffer<CB_VS_VertexShader> cb_vs_VertexShader;
+	ConstantBuffer<CB_VS_Cam> cb_vs_cam;
 	ConstantBuffer<CB_PS_Light> cb_ps_Light;
 	ConstantBuffer<CB_VS_DEPTH> cb_vs_depth;
+	ConstantBuffer<CB_VS_Mesh_Transform> cb_vs_mesh_transform;
 
 
 	CD3D11_VIEWPORT viewport;
@@ -54,7 +56,6 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilState;
 
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerState;
-	//Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerState_CullFront;
 	Microsoft::WRL::ComPtr<ID3D11BlendState> blendState;
 
 

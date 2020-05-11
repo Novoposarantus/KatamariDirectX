@@ -11,15 +11,7 @@ public:
 		ID3D11Device* device, 
 		ID3D11DeviceContext* deviceContext
 	);
-	void Draw(
-		ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader, 
-		const DirectX::SimpleMath::Matrix& worldMatrix, 
-		const DirectX::SimpleMath::Matrix& viewProjectionMatrix,
-		const DirectX::SimpleMath::Matrix& viewProjectionMatrixLight);
-	void Draw(
-		ConstantBuffer<CB_VS_DEPTH>& cb_vs_vertexshader,
-		const DirectX::SimpleMath::Matrix& worldMatrix,
-		const DirectX::SimpleMath::Matrix& viewProjectionMatrix);
+	void Draw(ConstantBuffer<CB_VS_Mesh_Transform>& cb_vs_vertexshader);
 	const DirectX::SimpleMath::Vector3& GetMinDirections();
 	const DirectX::SimpleMath::Vector3& GetMaxDirections();
 

@@ -49,29 +49,11 @@ void MainPlane::SetTexture(ID3D11ShaderResourceView* texture)
 	this->texture = texture;
 }
 
-void MainPlane::Draw(
-	ConstantBuffer<CB_VS_VertexShader>& cb_vs_vertexshader, 
-	const DirectX::SimpleMath::Matrix& viewProjectionMatrix,
-	const DirectX::SimpleMath::Matrix& viewProjectionMatrixLight)
+void MainPlane::Draw(ConstantBuffer<CB_VS_Mesh_Transform>& cb_vs_vertexshader)
 {
 	//Update Constant buffer with WVP Matrix
-	cb_vs_vertexshader.data.wvpMatrix = this->worldMatrix * viewProjectionMatrix; //Calculate World-View-Projection Matrix
-	cb_vs_vertexshader.data.worldMatrix = this->worldMatrix; //Calculate World-View-Projection Matrix
-	cb_vs_vertexshader.data.wvpLight = viewProjectionMatrixLight; //Calculate World-View-Projection Matrix
-	cb_vs_vertexshader.ApplyChanges();
-	this->deviceContext->VSSetConstantBuffers(0, 1, cb_vs_vertexshader.GetAddressOf());
-
-	this->deviceContext->PSSetShaderResources(0, 1, &this->texture); //Set Texture
-	this->deviceContext->IASetIndexBuffer(this->indexBuffer.Get(), DXGI_FORMAT::DXGI_FORMAT_R32_UINT, 0);
-	UINT offset = 0;
-	this->deviceContext->IASetVertexBuffers(0, 1, this->vertexBuffer.GetAddressOf(), this->vertexBuffer.StridePtr(), &offset);
-	this->deviceContext->DrawIndexed(this->indexBuffer.IndexCount(), 0, 0); //Draw
-}
-
-void MainPlane::Draw(ConstantBuffer<CB_VS_DEPTH>& cb_vs_vertexshader, const DirectX::SimpleMath::Matrix& viewProjectionMatrix)
-{
-	//Update Constant buffer with WVP Matrix
-	cb_vs_vertexshader.data.WVP = this->worldMatrix * viewProjectionMatrix; //Calculate World-View-Projection Matrix
+	cb_vs_vertexshader.data.worldMatrix = this->worldMatrix;
+	cb_vs_vertexshader.data.meshTransformMatrix = DirectX::SimpleMath::Matrix::Identity;
 	cb_vs_vertexshader.ApplyChanges();
 	this->deviceContext->VSSetConstantBuffers(0, 1, cb_vs_vertexshader.GetAddressOf());
 
