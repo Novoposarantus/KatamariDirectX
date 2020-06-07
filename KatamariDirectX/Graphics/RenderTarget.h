@@ -19,8 +19,8 @@ public:
 
 	XMMATRIX GetProjectionMatrix();
 
-	int SHADOWMAP_WIDTH = 1024;
-	int SHADOWMAP_HEIGHT = 1024;
+	int SHADOWMAP_WIDTH = 2048;
+	int SHADOWMAP_HEIGHT = 2048;
 
 private:
 	XMMATRIX m_projectionMatrix;

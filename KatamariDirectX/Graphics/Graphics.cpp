@@ -318,44 +318,6 @@ bool Graphics::InitializeScene()
 			gameObjects.push_back(gameObject);
 		}
 
-		//const float nanusuitScaleMod = 0.09f;
-
-		//for (int i = 0; i < 10; ++i)
-		//{
-		//	RenderableGameObject gameObject;
-		//	gameObject.Initialize(
-		//		"Data\\Objects\\nanosuit\\nanosuit.obj",
-		//		this->device.Get(),
-		//		this->deviceContext.Get()
-		//	);
-		//	float x = rand() % 200 - 100;
-		//	float z = rand() % 200 - 100;
-		//	float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (3.0f - 0.2f)));
-		//	gameObject.SetPosition(x, 0, z);
-		//	gameObject.SetScale(nanusuitScaleMod, nanusuitScaleMod, nanusuitScaleMod);
-		//	gameObject.SetSize(r);
-		//	gameObjects.push_back(gameObject);
-		//}
-
-		//const float alocasiaScaleMod = 0.001f;
-
-		//for (int i = 0; i < 1; ++i)
-		//{
-		//	RenderableGameObject gameObject;
-		//	gameObject.Initialize(
-		//		"Data\\Objects\\Alocasia\\01Alocasia_obj.obj",
-		//		this->device.Get(),
-		//		this->deviceContext.Get()
-		//	);
-		//	float x = rand() % 200 - 100;
-		//	float z = rand() % 200 - 100;
-		//	float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (2.0f - 0.2f)));
-		//	gameObject.SetPosition(x, 0, z);
-		//	gameObject.SetScale(alocasiaScaleMod, alocasiaScaleMod, alocasiaScaleMod);
-		//	gameObject.SetSize(r);
-		//	gameObjects.push_back(gameObject);
-		//}
-
 		//Initialize model(s)
 		if (!mainPlane.Initialize(this->device.Get(), this->deviceContext.Get()))
 			return false;

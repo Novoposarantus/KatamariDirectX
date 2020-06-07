@@ -16,10 +16,11 @@ public:
 	Matrix GetProjectionMatrix();
 
 	void UpdateViewMatrix(Vector3);
+	void AdjustTime(float);
 
 private:
 	void GenerateProjectionMatrix(float, float);
-
+	bool isNight;
 
 	Vector3 directionalColor;
 	float directionalStrength;

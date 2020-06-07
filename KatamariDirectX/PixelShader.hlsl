@@ -57,6 +57,9 @@ float GetShadow(float4 shadowCoord)
         {
             return 1.0f;
         }
+        
+        //float depth = depthMapTexture.SampleCmpLevelZero(depthobjSamplerState, float2(projectTexCoord.x, 1.0f - projectTexCoord.y), shadowCoordV).x;
+        
         bool d0 = shadowCoordV - bias < depthMapTexture.Sample(depthobjSamplerState, projectTexCoord).r;
         float d1 = shadowCoordV - bias < depthMapTexture.Sample(depthobjSamplerState, projectTexCoord + float2(dx, 0)).r;
         float d2 = shadowCoordV - bias < depthMapTexture.Sample(depthobjSamplerState, projectTexCoord + float2(0, dx)).r;
@@ -91,8 +94,10 @@ float3 GetLight(float3 lightStrenght, float3 lightV, float3 inPos, float3 normal
     float3 specAlbedo = fresnelFactor * roughnessFactor;
     
     specAlbedo = specAlbedo / (specAlbedo + 1.0f);
+    
     return lightStrenght * GetShadow(shadowCoord) + GetAmbient();
-    //return (specColor + specAlbedo) * lightStrenght * GetShadow(shadowCoord) + GetAmbient();
+    
+    //return (specAlbedo + roughnessFactor) * lightStrenght * GetShadow(shadowCoord) + GetAmbient();
 
 }
 

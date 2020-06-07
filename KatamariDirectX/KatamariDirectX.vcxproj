@@ -72,12 +72,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>D:\Институт\Katamari\KatamariDirectX\KatamariDirectX\Includes\assimp\assimp;D:\Институт\Katamari\KatamariDirectX\KatamariDirectX\Includes\assimp;$(SolutionDir)KatamariDirectX\Includes;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)KatamariDirectX\Includes\assimp\assimp;$(SolutionDir)KatamariDirectX\Includes\assimp;$(SolutionDir)KatamariDirectX\Libs\any;$(SolutionDir)KatamariDirectX\Includes;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)KatamariDirectX\Libs\any;$(SolutionDir)KatamariDirectX\Libs\x86\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>D:\Институт\Katamari\KatamariDirectX\KatamariDirectX\Includes\assimp\assimp;D:\Институт\Katamari\KatamariDirectX\KatamariDirectX\Includes\assimp;$(SolutionDir)KatamariDirectX\Libs\any;$(SolutionDir)KatamariDirectX\Includes;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)KatamariDirectX\Includes\assimp\assimp;$(SolutionDir)KatamariDirectX\Includes\assimp;$(SolutionDir)KatamariDirectX\Libs\any;$(SolutionDir)KatamariDirectX\Includes;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)KatamariDirectX\Libs\any;$(SolutionDir)KatamariDirectX\Libs\x64\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
