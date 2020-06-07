@@ -1,4 +1,4 @@
-#include "Graphics.h"
+ï»¿#include "Graphics.h"
 #include "..\\Macros.h"
 #include <algorithm>
 #include <cstdlib>
@@ -16,10 +16,14 @@ bool Graphics::Initialize(HWND hwnd, int width, int height)
 	if (!InitializeDirectX(hwnd, width, height))
 		return false;
 
+
 	if (!InitializeShaders())
 		return false;
 
 	if (!InitializeScene())
+		return false;
+
+	if (!InitializeDirect2D(hwnd, width, height))
 		return false;
 
 	//Setup ImGui
@@ -33,11 +37,11 @@ bool Graphics::Initialize(HWND hwnd, int width, int height)
 	return true;
 }
 
-
 bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
 {
 	try
 	{
+
 		std::vector<AdapterData> adapters = AdapterReader::GetAdapters();
 
 		std::sort(adapters.begin(), adapters.end(),
@@ -58,7 +62,7 @@ bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
 		scd.BufferDesc.Height = height;
 		scd.BufferDesc.RefreshRate.Numerator = 60;
 		scd.BufferDesc.RefreshRate.Denominator = 1;
-		scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		scd.BufferDesc.Format = gammaCorrection ? DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : DXGI_FORMAT_B8G8R8A8_UNORM;
 		scd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 		scd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 
@@ -78,7 +82,7 @@ bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
 			adapters[0].pAdapter, //IDXGI Adapter
 			D3D_DRIVER_TYPE_UNKNOWN,
 			NULL, // For software driver type
-			NULL, //Flags for runtime layers
+			D3D11_CREATE_DEVICE_DEBUG || D3D11_CREATE_DEVICE_BGRA_SUPPORT, //Flags for runtime layers
 			NULL, //feature levels array
 			0, //# of feature levels in array
 			D3D11_SDK_VERSION,
@@ -349,10 +353,9 @@ void Graphics::RenderFrame()
 
 void Graphics::RenderToWindow()
 {
-
-	// Ñáðàñûâàåì render target (òåïåðü ñíîâà áóäåò ðèñîâàòü íà ýêðàí)
+	// Ð¡Ð±Ñ€Ð°ÑÑ‹Ð²Ð°ÐµÐ¼ render target (Ñ‚ÐµÐ¿ÐµÑ€ÑŒ ÑÐ½Ð¾Ð²Ð° Ð±ÑƒÐ´ÐµÑ‚ Ñ€Ð¸ÑÐ¾Ð²Ð°Ñ‚ÑŒ Ð½Ð° ÑÐºÑ€Ð°Ð½)
 	this->deviceContext->OMSetRenderTargets(1, this->renderTargetView.GetAddressOf(), this->depthStencilView.Get());
-	// Ñáðàñûâàåì âüþïîðò
+	// Ð¡Ð±Ñ€Ð°ÑÑ‹Ð²Ð°ÐµÐ¼ Ð²ÑŒÑŽÐ¿Ð¾Ñ€Ñ‚
 	this->deviceContext->RSSetViewports(1, &viewport);
 
 	float bgcolor[] = { 0.0, 0.0f, 0.0f, 1.0f };
@@ -395,39 +398,21 @@ void Graphics::RenderToWindow()
 		this->gameObjects[i].Draw(this->cb_vs_mesh_transform);
 	}
 
-
-#pragma region DrawText
 	static int fpsCounter = 0;
 	fpsCounter += 1;
-	static std::string fpsStirng = "FPS: 0";
+	static std::string fpsStirng = "FPS: ";
 	if (fpsTimer.GetMilisecondsElapsed() > 1000)
 	{
 		fpsStirng = "FPS: " + std::to_string(fpsCounter);
 		fpsCounter = 0;
 		fpsTimer.Restart();
 	}
-	spriteBatch->Begin();
-	spriteFont->DrawString(
-		spriteBatch.get(),
-		StringHelper::StringToWide(fpsStirng).c_str(),
-		DirectX::XMFLOAT2(0, 0),
-		DirectX::Colors::White,
-		0.0f,
-		DirectX::XMFLOAT2(0, 0),
-		DirectX::XMFLOAT2(1.0f, 1.0f)
-	);
-	spriteFont->DrawString(
-		spriteBatch.get(),
-		L"Katamari damacy",
-		DirectX::XMFLOAT2(0, 25),
-		DirectX::Colors::White,
-		0.0f,
-		DirectX::XMFLOAT2(0, 0),
-		DirectX::XMFLOAT2(1.0f, 1.0f)
-	);
 
-	spriteBatch->End();
-#pragma endregion
+	this->renderTarget2D->BeginDraw();
+	auto rec1 = D2D1::RectF(0.0f, -50, 800, 300);
+	pSolidBrush->SetColor(D2D1::ColorF(D2D1::ColorF::WhiteSmoke));
+	this->renderTarget2D->DrawTextW(StringHelper::StringToWide(fpsStirng).c_str(), fpsStirng.length(), pDTextFormat.Get(), &rec1, pSolidBrush.Get());
+	this->renderTarget2D->EndDraw();
 
 #pragma region ImGui
 	ImGui_ImplDX11_NewFrame();
@@ -453,9 +438,9 @@ void Graphics::RenderToWindow()
 
 void Graphics::RenderToTexture()
 {
-	//Óêàçûâàåì ÷òî íóæíî ðåíäåðèòü â òåêñòóðó
+	//Ð£ÐºÐ°Ð·Ñ‹Ð²Ð°ÐµÐ¼ Ñ‡Ñ‚Ð¾ Ð½ÑƒÐ¶Ð½Ð¾ Ñ€ÐµÐ½Ð´ÐµÑ€Ð¸Ñ‚ÑŒ Ð² Ñ‚ÐµÐºÑÑ‚ÑƒÑ€Ñƒ
 	renderTarget->SetRenderTarget(this->deviceContext.Get());
-	// Î÷èùàåì åå
+	// ÐžÑ‡Ð¸Ñ‰Ð°ÐµÐ¼ ÐµÐµ
 	renderTarget->ClearRenderTarget(this->deviceContext.Get(), 0.0f, 0.0f, 0.0f, 1.0f);
 
 	this->deviceContext->IASetInputLayout(this->depthVertexshader.GetInputLayout());
@@ -486,4 +471,56 @@ void Graphics::RenderToTexture()
 		this->gameObjects[i].Draw(this->cb_vs_mesh_transform);
 	}
 
+}
+
+bool Graphics::InitializeDirect2D(HWND hwnd, int width, int height) 
+{
+	HRESULT hr;
+
+	hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, this->pD2D1Factory.GetAddressOf());
+	COM_ERROR_IF_FAILED(hr, "D2D1CreateFactory");
+
+	hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), reinterpret_cast<IUnknown**>(this->pDWriteFactory.GetAddressOf()));
+	COM_ERROR_IF_FAILED(hr, "DWriteCreateFactory");
+
+	ID3D11Resource* res;
+	this->renderTargetView->GetResource(&res);
+
+	IDXGISurface* surface;
+	hr = res->QueryInterface(__uuidof(IDXGISurface), reinterpret_cast<void**>(&surface));
+	COM_ERROR_IF_FAILED(hr, "QueryInterface");
+
+	hr = this->pD2D1Factory->CreateDxgiSurfaceRenderTarget(
+		surface,
+		D2D1_RENDER_TARGET_PROPERTIES{
+			D2D1_RENDER_TARGET_TYPE_HARDWARE,
+			D2D1_PIXEL_FORMAT {
+				gammaCorrection ? DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : DXGI_FORMAT_B8G8R8A8_UNORM,
+				D2D1_ALPHA_MODE_PREMULTIPLIED
+			},
+			static_cast<FLOAT>(96),
+			static_cast<FLOAT>(96)
+		},
+		this->renderTarget2D.GetAddressOf()
+	);
+	COM_ERROR_IF_FAILED(hr, "CreateDxgiSurfaceRenderTarget");
+	res->Release();
+	surface->Release();
+
+	hr = this->renderTarget2D->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White), this->pSolidBrush.GetAddressOf());
+	COM_ERROR_IF_FAILED(hr, "CreateSolidColorBrush");
+
+	hr = pDWriteFactory->CreateTextFormat(
+		L"arial",
+		NULL,
+		DWRITE_FONT_WEIGHT_REGULAR,
+		DWRITE_FONT_STYLE_NORMAL,
+		DWRITE_FONT_STRETCH_NORMAL,
+		72.0f,
+		L"en-us",
+		pDTextFormat.GetAddressOf()
+	);
+	COM_ERROR_IF_FAILED(hr, "CreateTextFormat");
+
+	return true;
 }

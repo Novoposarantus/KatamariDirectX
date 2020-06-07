@@ -1,4 +1,7 @@
 #pragma once
+#pragma comment(lib, "d2d1")
+#pragma comment(lib, "dwrite")
+
 #include "AdapterReader.h"
 #include "Shaders.h"
 #include <SpriteBatch.h>
@@ -14,6 +17,9 @@
 #include "Light.h"
 #include "DirectionalLight.h"
 #include "RenderTarget.h"
+#include <d2d1.h>
+#include <d2d1_1.h>
+#include <dwrite.h>
 
 class Graphics
 {
@@ -31,8 +37,13 @@ private:
 	bool InitializeDirectX(HWND hwnd, int width, int height);
 	bool InitializeShaders();
 	bool InitializeScene();
+	bool InitializeDirect2D(HWND hwnd, int width, int height);
 	void RenderToWindow();
 	void RenderToTexture();
+
+
+
+	const bool gammaCorrection = true;
 
 	Microsoft::WRL::ComPtr<ID3D11Device> device;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> deviceContext;
@@ -65,6 +76,15 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> depthsamplerState;
 
+	//Direct2d
+	Microsoft::WRL::ComPtr<ID2D1Factory> pD2D1Factory;
+	Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> pSolidBrush;
+	Microsoft::WRL::ComPtr<ID2D1RenderTarget> renderTarget2D;
+
+	Microsoft::WRL::ComPtr<IDWriteFactory> pDWriteFactory;
+	Microsoft::WRL::ComPtr<IDWriteTextFormat> pDTextFormat;
+	Microsoft::WRL::ComPtr<IDWriteTextLayout> pDTextLayout;
+	//end Direct2D
 	int windowWidth = 0;
 	int windowHeight = 0;
 	Timer fpsTimer;
