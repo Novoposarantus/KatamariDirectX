@@ -43,7 +43,7 @@ private:
 
 
 
-	const bool gammaCorrection = true;
+	const bool gammaCorrection = false;
 
 	Microsoft::WRL::ComPtr<ID3D11Device> device;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> deviceContext;
@@ -85,6 +85,7 @@ private:
 	Microsoft::WRL::ComPtr<IDWriteTextFormat> pDTextFormat;
 	Microsoft::WRL::ComPtr<IDWriteTextLayout> pDTextLayout;
 	//end Direct2D
+
 	int windowWidth = 0;
 	int windowHeight = 0;
 	Timer fpsTimer;

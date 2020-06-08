@@ -368,10 +368,8 @@ void Graphics::RenderToWindow()
 	this->deviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
 
 	this->deviceContext->PSSetShaderResources(1, 1, renderTarget->GetShaderResourceViewAddress());
-
 	this->deviceContext->PSSetSamplers(0, 1, this->samplerState.GetAddressOf());
 	this->deviceContext->PSSetSamplers(1, 1, this->depthsamplerState.GetAddressOf());
-
 
 
 	this->deviceContext->VSSetShader(vertexshader.GetShader(), NULL, 0);
@@ -398,21 +396,21 @@ void Graphics::RenderToWindow()
 		this->gameObjects[i].Draw(this->cb_vs_mesh_transform);
 	}
 
-	static int fpsCounter = 0;
-	fpsCounter += 1;
-	static std::string fpsStirng = "FPS: ";
-	if (fpsTimer.GetMilisecondsElapsed() > 1000)
-	{
-		fpsStirng = "FPS: " + std::to_string(fpsCounter);
-		fpsCounter = 0;
-		fpsTimer.Restart();
-	}
+	//static int fpsCounter = 0;
+	//fpsCounter += 1;
+	//static std::string fpsStirng = "FPS: ";
+	//if (fpsTimer.GetMilisecondsElapsed() > 1000)
+	//{
+	//	fpsStirng = "FPS: " + std::to_string(fpsCounter);
+	//	fpsCounter = 0;
+	//	fpsTimer.Restart();
+	//}
 
-	this->renderTarget2D->BeginDraw();
-	auto rec1 = D2D1::RectF(0.0f, -50, 800, 300);
-	pSolidBrush->SetColor(D2D1::ColorF(D2D1::ColorF::WhiteSmoke));
-	this->renderTarget2D->DrawTextW(StringHelper::StringToWide(fpsStirng).c_str(), fpsStirng.length(), pDTextFormat.Get(), &rec1, pSolidBrush.Get());
-	this->renderTarget2D->EndDraw();
+	//this->renderTarget2D->BeginDraw();
+	//auto rec1 = D2D1::RectF(0.0f, -50, 800, 300);
+	//pSolidBrush->SetColor(D2D1::ColorF(D2D1::ColorF::WhiteSmoke));
+	//this->renderTarget2D->DrawTextW(StringHelper::StringToWide(fpsStirng).c_str(), fpsStirng.length(), pDTextFormat.Get(), &rec1, pSolidBrush.Get());
+	//this->renderTarget2D->EndDraw();
 
 #pragma region ImGui
 	ImGui_ImplDX11_NewFrame();
