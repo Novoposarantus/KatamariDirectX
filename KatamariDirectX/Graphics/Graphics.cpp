@@ -141,6 +141,11 @@ bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
 			return false;
 
 
+		renderTargetHDR = new RenderTarget();
+		if (!renderTargetHDR->Init(this->device.Get(), 0.1f, 10000.0f))
+			return false;
+
+
 		//Create Rasterizer State
 		CD3D11_RASTERIZER_DESC rasterizerDesc(D3D11_DEFAULT);
 		rasterizerDesc.CullMode = D3D11_CULL_FRONT;
@@ -149,16 +154,6 @@ bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
 			this->rasterizerState.GetAddressOf()
 		);
 		COM_ERROR_IF_FAILED(hr, "Failed to create rasterizer state.");
-
-		//Create Rasterizer State Culing front
-		/*CD3D11_RASTERIZER_DESC rasterizerDesc_CullFront(D3D11_DEFAULT);
-		rasterizerDesc_CullFront.CullMode = D3D11_CULL_MODE::D3D11_CULL_FRONT;
-
-		hr = this->device->CreateRasterizerState(
-			&rasterizerDesc_CullFront,
-			this->rasterizerState_CullFront.GetAddressOf()
-		);
-		COM_ERROR_IF_FAILED(hr, "Failed to create rasterizer state.");*/
 
 		//Create Blend State
 		D3D11_BLEND_DESC blendDesc = { 0 };
@@ -193,14 +188,15 @@ bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
 		sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 		sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 		sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-		hr = this->device->CreateSamplerState(&sampDesc, this->samplerState.GetAddressOf()); //Create sampler state
+		hr = this->device->CreateSamplerState(&sampDesc, this->wrapSamplerState.GetAddressOf()); //Create sampler state
 		COM_ERROR_IF_FAILED(hr, "Failed to create sampler state.");
 
 		sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
 		sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
 		sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-		hr = this->device->CreateSamplerState(&sampDesc, this->depthsamplerState.GetAddressOf()); //Create sampler state
+		hr = this->device->CreateSamplerState(&sampDesc, this->clampSamplerState.GetAddressOf()); //Create sampler state
 		COM_ERROR_IF_FAILED(hr, "Failed to create depth sampler state.");
+
 	}
 	catch (COMException & exception)
 	{
@@ -305,22 +301,22 @@ bool Graphics::InitializeScene()
 		mainObject.SetPosition(0, -0.1, 0);
 		this->mainObjectSize = mainStartSize;
 
-		//for (int i = 0; i < 20; ++i)
-		//{
-		//	RenderableGameObject gameObject;
-		//	gameObject.Initialize(
-		//		"Data\\Objects\\Samples\\orange_embeddedtexture.fbx", 
-		//		this->device.Get(), 
-		//		this->deviceContext.Get()
-		//	);
-		//	float x = rand() % 200 - 100;
-		//	float z = rand() % 200 - 100; 
-		//	float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (0.7f - 0.2f)));
-		//	gameObject.SetPosition(x, 0, z);
-		//	gameObject.SetScale(orangeScale, orangeScale, orangeScale);
-		//	gameObject.SetSize(r);
-		//	gameObjects.push_back(gameObject);
-		//}
+		for (int i = 0; i < 20; ++i)
+		{
+			RenderableGameObject gameObject;
+			gameObject.Initialize(
+				"Data\\Objects\\Samples\\orange_embeddedtexture.fbx", 
+				this->device.Get(), 
+				this->deviceContext.Get()
+			);
+			float x = rand() % 200 - 100;
+			float z = rand() % 200 - 100; 
+			float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (0.7f - 0.2f)));
+			gameObject.SetPosition(x, 0, z);
+			gameObject.SetScale(orangeScale, orangeScale, orangeScale);
+			gameObject.SetSize(r);
+			gameObjects.push_back(gameObject);
+		}
 
 		//Initialize model(s)
 		if (!mainPlane.Initialize(this->device.Get(), this->deviceContext.Get()))
@@ -348,12 +344,13 @@ void Graphics::RenderFrame()
 	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_Light.GetAddressOf());
 
 	this->RenderToTexture();
-
+	this->RenderToHDRTexture();
 	this->RenderToWindow();
 }
 
 void Graphics::RenderToWindow()
 {
+
 	// Сбрасываем render target (теперь снова будет рисовать на экран)
 	this->deviceContext->OMSetRenderTargets(1, this->renderTargetView.GetAddressOf(), this->depthStencilView.Get());
 	// Сбрасываем вьюпорт
@@ -369,8 +366,10 @@ void Graphics::RenderToWindow()
 	this->deviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
 
 	this->deviceContext->PSSetShaderResources(1, 1, renderTarget->GetShaderResourceViewAddress());
-	this->deviceContext->PSSetSamplers(0, 1, this->samplerState.GetAddressOf());
-	this->deviceContext->PSSetSamplers(1, 1, this->depthsamplerState.GetAddressOf());
+	this->deviceContext->GenerateMips(this->renderTargetHDR->GetShaderResourceView());
+	this->deviceContext->PSSetShaderResources(2, 1, renderTargetHDR->GetShaderResourceViewAddress());
+	this->deviceContext->PSSetSamplers(0, 1, this->wrapSamplerState.GetAddressOf());
+	this->deviceContext->PSSetSamplers(1, 1, this->clampSamplerState.GetAddressOf());
 
 
 	this->deviceContext->VSSetShader(vertexshader.GetShader(), NULL, 0);
@@ -428,24 +427,24 @@ void Graphics::RenderToWindow()
 	this->renderTarget2D->EndDraw();
 
 #pragma region ImGui
-	//ImGui_ImplDX11_NewFrame();
-	//ImGui_ImplWin32_NewFrame();
-	//ImGui::NewFrame();
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
 
-	//auto camPosString = std::to_string(camPos.x) + "," + std::to_string(camPos.y) + "," + std::to_string(camPos.z);
-	//ImGui::Begin("Light Controls");
-	////ImGui::Text(camPosString.c_str());
-	////auto texture = renderTarget->GetShaderResourceView();
-	////ImGui::Image(renderTarget->GetShaderResourceView(), ImVec2(400, 400));
-	////ImGui::DragFloat("SpecPower", &this->directionalLight.specPower, 1.0f, 10.0f, 100.0f);
-	//ImGui::End();
+	auto camPosString = std::to_string(camPos.x) + "," + std::to_string(camPos.y) + "," + std::to_string(camPos.z);
+	ImGui::Begin("Light Controls");
+	ImGui::Text(camPosString.c_str());
+	ImGui::Image(renderTargetHDR->GetShaderResourceView(), ImVec2(400, 400));
+	//ImGui::DragFloat("SpecPower", &this->directionalLight.specPower, 1.0f, 10.0f, 100.0f);
+	ImGui::End();
 
-	//ImGui::Render();
-	//ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 
 #pragma endregion
 
+	this->deviceContext->PSSetShaderResources(3, 1, renderTargetHDR->GetShaderResourceViewAddress());
 	this->swapchain->Present(1, NULL);
 }
 
@@ -536,4 +535,51 @@ bool Graphics::InitializeDirect2D(HWND hwnd, int width, int height)
 	COM_ERROR_IF_FAILED(hr, "CreateTextFormat");
 
 	return true;
+}
+
+void Graphics::RenderToHDRTexture()
+{
+	//Указываем что нужно рендерить в текстуру
+	renderTargetHDR->SetRenderTarget(this->deviceContext.Get());
+	// Очищаем ее
+	renderTargetHDR->ClearRenderTarget(this->deviceContext.Get(), 0.0f, 0.0f, 0.0f, 1.0f);
+
+	float bgcolor[] = { 0.0, 0.0f, 0.0f, 1.0f };
+	this->deviceContext->ClearDepthStencilView(this->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	this->deviceContext->IASetInputLayout(this->vertexshader.GetInputLayout());
+	this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	this->deviceContext->OMSetDepthStencilState(this->depthStencilState.Get(), 0);
+	this->deviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
+
+	this->deviceContext->PSSetShaderResources(1, 1, renderTarget->GetShaderResourceViewAddress());
+	this->deviceContext->PSSetSamplers(0, 1, this->wrapSamplerState.GetAddressOf());
+	this->deviceContext->PSSetSamplers(1, 1, this->clampSamplerState.GetAddressOf());
+
+
+	this->deviceContext->VSSetShader(vertexshader.GetShader(), NULL, 0);
+	this->deviceContext->PSSetShader(pixelshader.GetShader(), NULL, 0);
+
+	this->deviceContext->VSSetConstantBuffers(1, 1, this->cb_vs_cam.GetAddressOf());
+	this->cb_vs_cam.data.camProjMatrix = camera.GetProjectionMatrix();
+	this->cb_vs_cam.data.camViewMatrix = camera.GetViewMatrix();
+	this->cb_vs_cam.data.camShadowProjMatrix = directionalLight.GetProjectionMatrix();
+	this->cb_vs_cam.data.camShadowViewMatrix = directionalLight.GetViewMatrix();
+	auto camPos = camera.GetPosition();
+	this->cb_vs_cam.data.camPos = Vector4(camPos.x, camPos.y, camPos.z, 1.0f);
+	this->cb_vs_cam.ApplyChanges();
+
+	this->mainPlane.Draw(this->cb_vs_mesh_transform);
+	this->mainObject.Draw(this->cb_vs_mesh_transform);
+	for (int i = 0; i < this->gameObjects.size(); i++)
+	{
+		if (!this->gameObjects[i].IsAttachedToMain()
+			&& this->gameObjects[i].CanAttach(this->mainObjectSize)
+			&& this->gameObjects[i].CheckColision(this->mainObject))
+		{
+			this->gameObjects[i].AttachToMain(&this->mainObject);
+			this->mainObjectSize += this->gameObjects[i].GetSize() / 2;
+		}
+		this->gameObjects[i].Draw(this->cb_vs_mesh_transform);
+	}
 }

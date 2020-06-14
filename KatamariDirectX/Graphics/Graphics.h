@@ -14,8 +14,8 @@
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_win32.h"
 #include "ImGui/imgui_impl_dx11.h"
-#include "Light.h"
 #include "DirectionalLight.h"
+#include "../Includes/PostProcess.h"
 #include "RenderTarget.h"
 #include <d2d1.h>
 #include <d2d1_1.h>
@@ -40,10 +40,11 @@ private:
 	bool InitializeDirect2D(HWND hwnd, int width, int height);
 	void RenderToWindow();
 	void RenderToTexture();
+	void RenderToHDRTexture();
 
 
 
-	const bool gammaCorrection = false;
+	const bool gammaCorrection = true;
 
 	Microsoft::WRL::ComPtr<ID3D11Device> device;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> deviceContext;
@@ -51,6 +52,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> renderTargetView;
 
 	RenderTarget* renderTarget;
+	RenderTarget* renderTargetHDR;
 	VertexShader vertexshader;
 	PixelShader pixelshader;
 	VertexShader depthVertexshader;
@@ -73,8 +75,8 @@ private:
 	std::unique_ptr<DirectX::SpriteBatch> spriteBatch;
 	std::unique_ptr<DirectX::SpriteFont> spriteFont;
 
-	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
-	Microsoft::WRL::ComPtr<ID3D11SamplerState> depthsamplerState;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> wrapSamplerState;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> clampSamplerState;
 
 	//Direct2d
 	Microsoft::WRL::ComPtr<ID2D1Factory> pD2D1Factory;
