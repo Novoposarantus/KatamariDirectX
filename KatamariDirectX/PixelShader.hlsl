@@ -6,6 +6,8 @@ cbuffer lightBuffer : register(b0)
     float dirPadding;
     float3 camPos;
     float posPadding;
+    float3 specPowerPadding;
+    float specPower;
 }
 
 struct PS_INPUT
@@ -16,6 +18,7 @@ struct PS_INPUT
     float3 inNormal : NORMAL;
     float3 inSpecColor : SPEC_COLOR;
     float4 inShadowCoord : SHADDOW_TEXCOORD;
+    float3 viewDirection : TEXCOORD1;
 };
 
 Texture2D objTexture : register(t0);
@@ -27,18 +30,6 @@ SamplerState depthobjSamplerState : register(s1);
 float3 GetAmbient()
 {
     return float3(0.2f, 0.2f, 0.2f);
-}
-
-float3 SchlickFresnel(float3 R0, float3 normal, float3 lightV)
-{
-    float cosIncidentAngle = saturate(dot(normal, lightV));
-    float f0 = 1.0f - cosIncidentAngle;
-    return R0 + (1.0f - R0) * pow(f0, 4);
-}
-
-float RoughnessFactor(float3 normal, float3 halfV, float m)
-{
-    return (m + 8) / 8 * pow(max(dot(normal, halfV), 0), m);
 }
 
 float GetShadow(float4 shadowCoord)
@@ -81,26 +72,6 @@ float GetShadow(float4 shadowCoord)
     return 1;
 }
 
-float3 GetLight(float3 lightStrenght, float3 lightV, float3 inPos, float3 normalW, float3 camPos, float4 shadowCoord, float3 specColor)
-{
-    const float m = 128;
-    const float fresnelR0 = 0.5f;
-    
-    float3 halfV = normalize(camPos - lightV);
-    
-    float roughnessFactor = RoughnessFactor(normalW, halfV, m);
-    float3 fresnelFactor = SchlickFresnel(fresnelR0, halfV, lightV);
-    
-    float3 specAlbedo = fresnelFactor * roughnessFactor;
-    
-    specAlbedo = specAlbedo / (specAlbedo + 1.0f);
-    
-    return lightStrenght * GetShadow(shadowCoord) + GetAmbient();
-    
-    //return (specAlbedo + roughnessFactor) * lightStrenght * GetShadow(shadowCoord) + GetAmbient();
-
-}
-
 float4 main(PS_INPUT input) : SV_Target
 {
     float3 textureColor = objTexture.Sample(objSamplerState, input.inTexCoord);
@@ -111,7 +82,11 @@ float4 main(PS_INPUT input) : SV_Target
     
     float3 lightStrenght = directionalLightColor * directionalLightStrenght * lowLambert;
     
-    float3 color = GetLight(lightStrenght, directionalLightDir, input.inPosWVP.xyz, input.inNormal, camPos, input.inShadowCoord, input.inSpecColor);
+    float3 color = lightStrenght * GetShadow(input.inShadowCoord) + GetAmbient();
     float3 finalColor = color * textureColor;
+    
+    float3 reflection = normalize(2 * directionalLightStrenght * input.inNormal + directionalLightDir);
+    float3 specular = pow(saturate(dot(reflection, input.viewDirection)), specPower) + input.inSpecColor;
+    finalColor = saturate(finalColor + specular);
     return float4(finalColor, 1);
 }

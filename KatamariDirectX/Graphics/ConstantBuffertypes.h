@@ -26,6 +26,7 @@ struct CB_VS_Cam
 	DirectX::SimpleMath::Matrix camProjMatrix;
 	DirectX::SimpleMath::Matrix camShadowViewMatrix;
 	DirectX::SimpleMath::Matrix camShadowProjMatrix;
+	DirectX::SimpleMath::Vector4 camPos;
 };
 
 struct CB_PS_Alpha
@@ -41,4 +42,6 @@ struct CB_PS_Light
 	float dirPadding;
 	DirectX::SimpleMath::Vector3 camPos;
 	float posPadding;
+	DirectX::SimpleMath::Vector3 specPowerPadding;
+	float specPower;
 };

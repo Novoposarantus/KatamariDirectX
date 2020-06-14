@@ -82,7 +82,7 @@ bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
 			adapters[0].pAdapter, //IDXGI Adapter
 			D3D_DRIVER_TYPE_UNKNOWN,
 			NULL, // For software driver type
-			D3D11_CREATE_DEVICE_DEBUG || D3D11_CREATE_DEVICE_BGRA_SUPPORT, //Flags for runtime layers
+			D3D11_CREATE_DEVICE_DEBUG | D3D11_CREATE_DEVICE_BGRA_SUPPORT, //Flags for runtime layers
 			NULL, //feature levels array
 			0, //# of feature levels in array
 			D3D11_SDK_VERSION,
@@ -305,22 +305,22 @@ bool Graphics::InitializeScene()
 		mainObject.SetPosition(0, -0.1, 0);
 		this->mainObjectSize = mainStartSize;
 
-		for (int i = 0; i < 20; ++i)
-		{
-			RenderableGameObject gameObject;
-			gameObject.Initialize(
-				"Data\\Objects\\Samples\\orange_embeddedtexture.fbx", 
-				this->device.Get(), 
-				this->deviceContext.Get()
-			);
-			float x = rand() % 200 - 100;
-			float z = rand() % 200 - 100; 
-			float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (0.7f - 0.2f)));
-			gameObject.SetPosition(x, 0, z);
-			gameObject.SetScale(orangeScale, orangeScale, orangeScale);
-			gameObject.SetSize(r);
-			gameObjects.push_back(gameObject);
-		}
+		//for (int i = 0; i < 20; ++i)
+		//{
+		//	RenderableGameObject gameObject;
+		//	gameObject.Initialize(
+		//		"Data\\Objects\\Samples\\orange_embeddedtexture.fbx", 
+		//		this->device.Get(), 
+		//		this->deviceContext.Get()
+		//	);
+		//	float x = rand() % 200 - 100;
+		//	float z = rand() % 200 - 100; 
+		//	float r = 0.2f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (0.7f - 0.2f)));
+		//	gameObject.SetPosition(x, 0, z);
+		//	gameObject.SetScale(orangeScale, orangeScale, orangeScale);
+		//	gameObject.SetSize(r);
+		//	gameObjects.push_back(gameObject);
+		//}
 
 		//Initialize model(s)
 		if (!mainPlane.Initialize(this->device.Get(), this->deviceContext.Get()))
@@ -342,6 +342,7 @@ void Graphics::RenderFrame()
 	this->directionalLight.UpdateViewMatrix(this->mainObject.GetPosition());
 
 	this->cb_ps_Light.data.camPos = camera.GetPosition();
+	this->cb_ps_Light.data.specPower = this->directionalLight.specPower;
 	this->cb_ps_Light.ApplyChanges();
 	this->deviceContext->RSSetState(this->rasterizerState.Get());
 	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_Light.GetAddressOf());
@@ -380,6 +381,8 @@ void Graphics::RenderToWindow()
 	this->cb_vs_cam.data.camViewMatrix = camera.GetViewMatrix();
 	this->cb_vs_cam.data.camShadowProjMatrix = directionalLight.GetProjectionMatrix();
 	this->cb_vs_cam.data.camShadowViewMatrix = directionalLight.GetViewMatrix();
+	auto camPos = camera.GetPosition();
+	this->cb_vs_cam.data.camPos = Vector4(camPos.x, camPos.y, camPos.z, 1.0f);
 	this->cb_vs_cam.ApplyChanges();
 
 	this->mainPlane.Draw(this->cb_vs_mesh_transform);
@@ -396,37 +399,49 @@ void Graphics::RenderToWindow()
 		this->gameObjects[i].Draw(this->cb_vs_mesh_transform);
 	}
 
-	//static int fpsCounter = 0;
-	//fpsCounter += 1;
-	//static std::string fpsStirng = "FPS: ";
-	//if (fpsTimer.GetMilisecondsElapsed() > 1000)
-	//{
-	//	fpsStirng = "FPS: " + std::to_string(fpsCounter);
-	//	fpsCounter = 0;
-	//	fpsTimer.Restart();
-	//}
+	static int fpsCounter = 0;
+	fpsCounter += 1;
+	static std::string fpsStirng = "FPS: ";
+	if (fpsTimer.GetMilisecondsElapsed() > 1000)
+	{
+		fpsStirng = "FPS: " + std::to_string(fpsCounter);
+		fpsCounter = 0;
+		fpsTimer.Restart();
+	}
 
-	//this->renderTarget2D->BeginDraw();
-	//auto rec1 = D2D1::RectF(0.0f, -50, 800, 300);
-	//pSolidBrush->SetColor(D2D1::ColorF(D2D1::ColorF::WhiteSmoke));
-	//this->renderTarget2D->DrawTextW(StringHelper::StringToWide(fpsStirng).c_str(), fpsStirng.length(), pDTextFormat.Get(), &rec1, pSolidBrush.Get());
-	//this->renderTarget2D->EndDraw();
+	static int attachedCounter = 0;
+	for (int i = 0; i < this->gameObjects.size(); ++i) {
+		if (this->gameObjects[i].IsAttachedToMain()) {
+			attachedCounter++;
+		}
+	}
+	static std::string attachedCounterString = "";
+	attachedCounterString = "Attached: " + std::to_string(attachedCounter);
+	attachedCounter = 0;
+
+	this->renderTarget2D->BeginDraw();
+	auto rec1 = D2D1::RectF(0.0f, 0, 1280, 800);
+	auto rec2 = D2D1::RectF(0.0f, 42, 1280, 800);
+	pSolidBrush->SetColor(D2D1::ColorF(D2D1::ColorF::WhiteSmoke));
+	this->renderTarget2D->DrawTextW(StringHelper::StringToWide(fpsStirng).c_str(), fpsStirng.length(), pDTextFormat.Get(), &rec1, pSolidBrush.Get());
+	this->renderTarget2D->DrawTextW(StringHelper::StringToWide(attachedCounterString).c_str(), attachedCounterString.length(), pDTextFormat.Get(), &rec2, pSolidBrush.Get());
+	this->renderTarget2D->EndDraw();
 
 #pragma region ImGui
-	ImGui_ImplDX11_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
+	//ImGui_ImplDX11_NewFrame();
+	//ImGui_ImplWin32_NewFrame();
+	//ImGui::NewFrame();
 
-	auto camPos = this->camera.GetPosition();
-	auto camPosString = std::to_string(camPos.x) + "," + std::to_string(camPos.y) + "," + std::to_string(camPos.z);
-	ImGui::Begin("Light Controls");
-	ImGui::Text(camPosString.c_str());
-	auto texture = renderTarget->GetShaderResourceView();
-	ImGui::Image(renderTarget->GetShaderResourceView(), ImVec2(400, 400));
-	ImGui::End();
+	//auto camPosString = std::to_string(camPos.x) + "," + std::to_string(camPos.y) + "," + std::to_string(camPos.z);
+	//ImGui::Begin("Light Controls");
+	////ImGui::Text(camPosString.c_str());
+	////auto texture = renderTarget->GetShaderResourceView();
+	////ImGui::Image(renderTarget->GetShaderResourceView(), ImVec2(400, 400));
+	////ImGui::DragFloat("SpecPower", &this->directionalLight.specPower, 1.0f, 10.0f, 100.0f);
+	//ImGui::End();
 
-	ImGui::Render();
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	//ImGui::Render();
+	//ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 
 #pragma endregion
@@ -514,7 +529,7 @@ bool Graphics::InitializeDirect2D(HWND hwnd, int width, int height)
 		DWRITE_FONT_WEIGHT_REGULAR,
 		DWRITE_FONT_STYLE_NORMAL,
 		DWRITE_FONT_STRETCH_NORMAL,
-		72.0f,
+		40.0f,
 		L"en-us",
 		pDTextFormat.GetAddressOf()
 	);

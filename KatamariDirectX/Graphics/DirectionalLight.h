@@ -17,6 +17,7 @@ public:
 
 	void UpdateViewMatrix(Vector3);
 	void AdjustTime(float);
+	float specPower;
 
 private:
 	void GenerateProjectionMatrix(float, float);
