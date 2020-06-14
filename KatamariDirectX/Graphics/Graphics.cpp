@@ -394,6 +394,7 @@ void Graphics::RenderToWindow()
 		{
 			this->gameObjects[i].AttachToMain(&this->mainObject);
 			this->mainObjectSize += this->gameObjects[i].GetSize() / 2;
+			this->attached++;
 		}
 		this->gameObjects[i].Draw(this->cb_vs_mesh_transform);
 	}
@@ -408,15 +409,8 @@ void Graphics::RenderToWindow()
 		fpsTimer.Restart();
 	}
 
-	static int attachedCounter = 0;
-	for (int i = 0; i < this->gameObjects.size(); ++i) {
-		if (this->gameObjects[i].IsAttachedToMain()) {
-			attachedCounter++;
-		}
-	}
 	static std::string attachedCounterString = "";
-	attachedCounterString = "Attached: " + std::to_string(attachedCounter);
-	attachedCounter = 0;
+	attachedCounterString = "Attached: " + std::to_string(this->attached);
 
 	this->renderTarget2D->BeginDraw();
 	auto rec1 = D2D1::RectF(0.0f, 0, 1280, 800);
@@ -473,13 +467,6 @@ void Graphics::RenderToTexture()
 	this->mainObject.Draw(this->cb_vs_mesh_transform);
 	for (int i = 0; i < this->gameObjects.size(); i++)
 	{
-		if (!this->gameObjects[i].IsAttachedToMain()
-			&& this->gameObjects[i].CanAttach(this->mainObjectSize)
-			&& this->gameObjects[i].CheckColision(this->mainObject))
-		{
-			this->gameObjects[i].AttachToMain(&this->mainObject);
-			this->mainObjectSize += this->gameObjects[i].GetSize() / 2;
-		}
 		this->gameObjects[i].Draw(this->cb_vs_mesh_transform);
 	}
 
@@ -573,13 +560,6 @@ void Graphics::RenderToHDRTexture()
 	this->mainObject.Draw(this->cb_vs_mesh_transform);
 	for (int i = 0; i < this->gameObjects.size(); i++)
 	{
-		if (!this->gameObjects[i].IsAttachedToMain()
-			&& this->gameObjects[i].CanAttach(this->mainObjectSize)
-			&& this->gameObjects[i].CheckColision(this->mainObject))
-		{
-			this->gameObjects[i].AttachToMain(&this->mainObject);
-			this->mainObjectSize += this->gameObjects[i].GetSize() / 2;
-		}
 		this->gameObjects[i].Draw(this->cb_vs_mesh_transform);
 	}
 }

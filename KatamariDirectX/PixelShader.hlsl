@@ -107,5 +107,6 @@ float4 main(PS_INPUT input) : SV_Target
     float3 reflection = normalize(2 * directionalLightStrenght * input.inNormal + directionalLightDir);
     float3 specular = pow(saturate(dot(reflection, input.viewDirection)), specPower) + input.inSpecColor;
     finalColor = saturate(finalColor + specular);
-    return float4(ldr, 1);
+    //return float4(ldr, 1);
+    return float4(finalColor, 1);
 }
