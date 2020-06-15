@@ -9,7 +9,8 @@ public:
 	bool Initialize(
 		const std::string& filePath,
 		ID3D11Device* device,
-		ID3D11DeviceContext* deviceContext
+		ID3D11DeviceContext* deviceContext,
+		bool gamma
 	);
 	const Matrix& GetWorldMatrix() const;
 	virtual const Vector3& GetPosition() const;

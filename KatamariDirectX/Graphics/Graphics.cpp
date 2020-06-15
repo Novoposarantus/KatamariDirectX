@@ -284,7 +284,7 @@ bool Graphics::InitializeScene()
 		COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
 
 		//Initialize model(s)
-		if (!mainObject.Initialize("Data\\Objects\\Samples\\orange_embeddedtexture.fbx",this->device.Get(), this->deviceContext.Get()))
+		if (!mainObject.Initialize("Data\\Objects\\Samples\\orange_embeddedtexture.fbx",this->device.Get(), this->deviceContext.Get(), this->gammaCorrection))
 			return false;
 
 		if (!directionalLight.Initialize(0.5f, 100.0f))
@@ -307,7 +307,8 @@ bool Graphics::InitializeScene()
 			gameObject.Initialize(
 				"Data\\Objects\\Samples\\orange_embeddedtexture.fbx", 
 				this->device.Get(), 
-				this->deviceContext.Get()
+				this->deviceContext.Get(),
+				this->gammaCorrection
 			);
 			float x = rand() % 200 - 100;
 			float z = rand() % 200 - 100; 
@@ -428,8 +429,8 @@ void Graphics::RenderToWindow()
 	auto camPosString = std::to_string(camPos.x) + "," + std::to_string(camPos.y) + "," + std::to_string(camPos.z);
 	ImGui::Begin("Light Controls");
 	ImGui::Text(camPosString.c_str());
-	ImGui::Image(renderTargetHDR->GetShaderResourceView(), ImVec2(400, 400));
-	//ImGui::DragFloat("SpecPower", &this->directionalLight.specPower, 1.0f, 10.0f, 100.0f);
+	//ImGui::Image(renderTargetHDR->GetShaderResourceView(), ImVec2(400, 400));
+	ImGui::DragFloat("SpecPower", &this->directionalLight.specPower, 1.0f, 1.0f, 100.0f);
 	ImGui::End();
 
 	ImGui::Render();
@@ -494,7 +495,7 @@ bool Graphics::InitializeDirect2D(HWND hwnd, int width, int height)
 		D2D1_RENDER_TARGET_PROPERTIES{
 			D2D1_RENDER_TARGET_TYPE_HARDWARE,
 			D2D1_PIXEL_FORMAT {
-				gammaCorrection ? DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : DXGI_FORMAT_B8G8R8A8_UNORM,
+				DXGI_FORMAT_UNKNOWN,
 				D2D1_ALPHA_MODE_PREMULTIPLIED
 			},
 			static_cast<FLOAT>(96),

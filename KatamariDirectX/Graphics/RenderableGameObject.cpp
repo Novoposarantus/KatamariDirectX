@@ -4,10 +4,11 @@
 bool RenderableGameObject::Initialize(
 	const std::string& filePath, 
 	ID3D11Device* device, 
-	ID3D11DeviceContext* deviceContext
+	ID3D11DeviceContext* deviceContext,
+	bool gammaCorrection
 )
 {
-	if (!model.Initialize(filePath, device, deviceContext))
+	if (!model.Initialize(filePath, device, deviceContext, gammaCorrection))
 		return false;
 
 	this->SetPosition(0.0f, -0.1f, 0.0f);

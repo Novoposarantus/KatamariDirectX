@@ -9,7 +9,8 @@ public:
 	bool Initialize(
 		const std::string& filePath,
 		ID3D11Device* device, 
-		ID3D11DeviceContext* deviceContext
+		ID3D11DeviceContext* deviceContext,
+		bool gamma
 	);
 	void Draw(ConstantBuffer<CB_VS_Mesh_Transform>& cb_vs_vertexshader);
 	const DirectX::SimpleMath::Vector3& GetMinDirections();
@@ -31,6 +32,7 @@ private:
 	float xMinus;
 	float yMinus;
 	float zMinus;
+	bool gamma;
 
 	ID3D11Device* device = nullptr;
 	ID3D11DeviceContext* deviceContext = nullptr;

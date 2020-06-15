@@ -4,10 +4,12 @@
 bool Model::Initialize(
 	const std::string& filePath,
 	ID3D11Device* device, 
-	ID3D11DeviceContext* deviceContext)
+	ID3D11DeviceContext* deviceContext,
+	bool gamma)
 {
 	this->device = device;
 	this->deviceContext = deviceContext;
+	this->gamma = gamma;
 
 	try
 	{
@@ -233,10 +235,10 @@ std::vector<Texture> Model::LoadMaterialTextures(aiMaterial* pMaterial, aiTextur
 			pMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, aiColor);
 			if (aiColor.IsBlack()) //If color = black, just use grey
 			{
-				materialTextures.push_back(Texture(this->device, Colors::UnloadedTextureColor, textureType));
+				materialTextures.push_back(Texture(this->device, Colors::UnloadedTextureColor, textureType, this->gamma));
 				return materialTextures;
 			}
-			materialTextures.push_back(Texture(this->device, Color(aiColor.r * 255, aiColor.g * 255, aiColor.b * 255), textureType));
+			materialTextures.push_back(Texture(this->device, Color(aiColor.r * 255, aiColor.g * 255, aiColor.b * 255), textureType, this->gamma));
 			return materialTextures;
 		}
 	}
@@ -254,7 +256,8 @@ std::vector<Texture> Model::LoadMaterialTextures(aiMaterial* pMaterial, aiTextur
 					this->device,
 					reinterpret_cast<uint8_t*>(pScene->mTextures[index]->pcData),
 					pScene->mTextures[index]->mWidth,
-					textureType);
+					textureType,
+					this->gamma);
 				materialTextures.push_back(embeddedIndexedTexture);
 				break;
 			}
@@ -265,13 +268,14 @@ std::vector<Texture> Model::LoadMaterialTextures(aiMaterial* pMaterial, aiTextur
 					this->device,
 					reinterpret_cast<uint8_t*>(pTexture->pcData),
 					pTexture->mWidth,
-					textureType);
+					textureType,
+					this->gamma);
 				materialTextures.push_back(embeddedTexture);
 			} 
 			else if (storeType == TextureStorageType::Disk)
 			{
 				std::string filename = this->directory + '\\' + path.C_Str();
-				Texture diskTexture(this->device, filename, textureType);
+				Texture diskTexture(this->device, filename, textureType, this->gamma);
 				materialTextures.push_back(diskTexture);
 			}
 		}
@@ -279,7 +283,7 @@ std::vector<Texture> Model::LoadMaterialTextures(aiMaterial* pMaterial, aiTextur
 
 	if (materialTextures.size() == 0)
 	{
-		materialTextures.push_back(Texture(this->device, Colors::UnhandledTextureColor, aiTextureType::aiTextureType_DIFFUSE));
+		materialTextures.push_back(Texture(this->device, Colors::UnhandledTextureColor, aiTextureType::aiTextureType_DIFFUSE, this->gamma));
 	}
 	return materialTextures;
 }

@@ -7,7 +7,8 @@ public:
 	bool Initialize(
 		const std::string& filePath, 
 		ID3D11Device* device, 
-		ID3D11DeviceContext* deviceContext
+		ID3D11DeviceContext* deviceContext,
+		bool gammaCorrection
 	);
 
 	const Vector3 GetMaxDirection();
@@ -33,5 +34,4 @@ protected:
 	Matrix rotMatrix;
 	RenderableGameObject* mainGameObject = nullptr;
 	Vector3 mainObjectR;
-
 };

@@ -2,7 +2,7 @@
 
 bool DirectionalLight::Initialize(float screenNear, float screenDepth)
 {
-	this->SetDirectionalColor(1.0f, 1.0f, 1.0f, 1.0f);
+	this->SetDirectionalColor(1.0f, 1.0f, 1.0f, 0.5f);
 	this->SetDirection(1, -1, 0);
 	this->GenerateProjectionMatrix(screenNear, screenDepth);
 	this->specPower = 25.0f;

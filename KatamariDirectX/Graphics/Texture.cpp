@@ -3,18 +3,21 @@
 #include <WICTextureLoader.h>
 #include <DDSTextureLoader.h>
 
-Texture::Texture(ID3D11Device* device, const Color& color, aiTextureType type)
+Texture::Texture(ID3D11Device* device, const Color& color, aiTextureType type, bool gamma)
 {
+	this->gamma = gamma;
 	this->Initialize1x1ColorTexture(device, color, type);
 }
 
-Texture::Texture(ID3D11Device* device, const Color* colorData, UINT width, UINT height, aiTextureType type)
+Texture::Texture(ID3D11Device* device, const Color* colorData, UINT width, UINT height, aiTextureType type, bool gamma)
 {
+	this->gamma = gamma;
 	this->InitializeColorTexture(device, colorData, width, height, type);
 }
 
-Texture::Texture(ID3D11Device* device, const std::string& filePath, aiTextureType type)
+Texture::Texture(ID3D11Device* device, const std::string& filePath, aiTextureType type, bool gamma)
 {
+	this->gamma = gamma;
 	this->type = type;
 	if (StringHelper::GetFileExtension(filePath) == ".dds")
 	{
@@ -36,8 +39,9 @@ Texture::Texture(ID3D11Device* device, const std::string& filePath, aiTextureTyp
 	}
 }
 
-Texture::Texture(ID3D11Device* device, const uint8_t* pData, size_t size, aiTextureType type)
+Texture::Texture(ID3D11Device* device, const uint8_t* pData, size_t size, aiTextureType type, bool gamma)
 {
+	this->gamma = gamma;
 	this->type = type;
 	HRESULT hr = DirectX::CreateWICTextureFromMemory(device, pData, size, this->texture.GetAddressOf(), this->textureView.GetAddressOf());
 	COM_ERROR_IF_FAILED(hr, "Failed to create Texture from memory.");
@@ -66,7 +70,8 @@ void Texture::Initialize1x1ColorTexture(ID3D11Device* device, const Color& color
 void Texture::InitializeColorTexture(ID3D11Device* device, const Color* colorData, UINT width, UINT height, aiTextureType type)
 {
 	this->type = type;
-	CD3D11_TEXTURE2D_DESC textureDesc(DXGI_FORMAT_R8G8B8A8_UNORM, width, height);
+	bool isDifuse = type == aiTextureType_DIFFUSE;
+	CD3D11_TEXTURE2D_DESC textureDesc(isDifuse && this->gamma ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM, width, height);
 	ID3D11Texture2D* p2DTexture = nullptr;
 	D3D11_SUBRESOURCE_DATA initialData{};
 	initialData.pSysMem = colorData;

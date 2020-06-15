@@ -84,8 +84,10 @@ float4 main(PS_INPUT input) : SV_Target
     
     float3 lightStrenght = directionalLightColor * directionalLightStrenght * lowLambert;
     
-    float3 color = lightStrenght * GetShadow(input.inShadowCoord) + GetAmbient();
-    float3 finalColor = color * textureColor;
+    float shadows = GetShadow(input.inShadowCoord);
+    float3 color = lightStrenght * shadows + GetAmbient();
+    //float3 finalColor = color * textureColor;
+    float3 finalColor = color;
     
     
     float lum = curLumiTexture.Load(int3(0, 0, 10));
@@ -104,9 +106,10 @@ float4 main(PS_INPUT input) : SV_Target
         ldr = float3(1.0f, 1.0f, 1.0f) - exp(-textureColor * 2);
     }
     
-    float3 reflection = normalize(2 * directionalLightStrenght * input.inNormal + directionalLightDir);
+    float3 reflection = normalize(4 * directionalLightStrenght * input.inNormal + directionalLightDir);
     float3 specular = pow(saturate(dot(reflection, input.viewDirection)), specPower) + input.inSpecColor;
+    specular *= lightStrenght;
+    finalColor *= ldr;
     finalColor = saturate(finalColor + specular);
-    //return float4(ldr, 1);
     return float4(finalColor, 1);
 }

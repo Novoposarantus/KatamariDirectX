@@ -44,7 +44,7 @@ private:
 
 
 
-	const bool gammaCorrection = true;
+	const bool gammaCorrection = false;
 
 	Microsoft::WRL::ComPtr<ID3D11Device> device;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> deviceContext;

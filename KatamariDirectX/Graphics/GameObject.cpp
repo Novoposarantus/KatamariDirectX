@@ -3,9 +3,10 @@
 bool GameObject::Initialize(
 	const std::string& filePath,
 	ID3D11Device* device,
-	ID3D11DeviceContext* deviceContext)
+	ID3D11DeviceContext* deviceContext,
+	bool gamma)
 {
-	if (!model.Initialize(filePath, device, deviceContext))
+	if (!model.Initialize(filePath, device, deviceContext, gamma))
 		return false;
 
 	this->SetPosition(0.0f, 0.0f, 0.0f);
