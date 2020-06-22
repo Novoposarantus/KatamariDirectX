@@ -17,6 +17,7 @@
 #include "DirectionalLight.h"
 #include "../Includes/PostProcess.h"
 #include "RenderTarget.h"
+#include "GBufferRT.h"
 #include <d2d1.h>
 #include <d2d1_1.h>
 #include <dwrite.h>
@@ -41,10 +42,11 @@ private:
 	void RenderToWindow();
 	void RenderToTexture();
 	void RenderToHDRTexture();
+	void RenderToGBuffer();
 
 
 
-	const bool gammaCorrection = false;
+	const bool gammaCorrection = true;
 
 	Microsoft::WRL::ComPtr<ID3D11Device> device;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> deviceContext;
@@ -53,8 +55,12 @@ private:
 
 	RenderTarget* renderTarget;
 	RenderTarget* renderTargetHDR;
+	
+	GBufferRT* gbuffer;
+
 	VertexShader vertexshader;
 	PixelShader pixelshader;
+	PixelShader gBufferPixelshader;
 	VertexShader depthVertexshader;
 	PixelShader depthPixelshader;
 	ConstantBuffer<CB_VS_Cam> cb_vs_cam;

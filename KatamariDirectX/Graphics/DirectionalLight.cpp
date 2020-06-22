@@ -49,8 +49,6 @@ void DirectionalLight::UpdateViewMatrix(Vector3 mainObjectPos)
 {
 	Vector3 shadowCamPos = mainObjectPos - this->dir * 10;
 
-	//Vector3 shadowCamPos = mainObjectPos + Vector3::Up * 10;
-
 	this->viewMatrix = Matrix::CreateLookAt(
 		shadowCamPos,
 		mainObjectPos,

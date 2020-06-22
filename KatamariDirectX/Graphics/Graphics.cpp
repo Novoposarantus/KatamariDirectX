@@ -145,6 +145,10 @@ bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
 		if (!renderTargetHDR->Init(this->device.Get(), 0.1f, 10000.0f))
 			return false;
 
+		gbuffer = new GBufferRT();
+		if (!gbuffer->Init(this->device.Get(), 0.1f, 10000.0f))
+			return false;
+
 
 		//Create Rasterizer State
 		CD3D11_RASTERIZER_DESC rasterizerDesc(D3D11_DEFAULT);
@@ -259,6 +263,11 @@ bool Graphics::InitializeShaders()
 		return false;
 	}
 
+	if (!gBufferPixelshader.Initialize(this->device, shaderFolder + L"GBufferPixelShader.cso"))
+	{
+		return false;
+	}
+
 	return true;
 }
 
@@ -346,6 +355,7 @@ void Graphics::RenderFrame()
 
 	this->RenderToTexture();
 	this->RenderToHDRTexture();
+	this->RenderToGBuffer();
 	this->RenderToWindow();
 }
 
@@ -426,11 +436,20 @@ void Graphics::RenderToWindow()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
-	auto camPosString = std::to_string(camPos.x) + "," + std::to_string(camPos.y) + "," + std::to_string(camPos.z);
-	ImGui::Begin("Light Controls");
-	ImGui::Text(camPosString.c_str());
-	//ImGui::Image(renderTargetHDR->GetShaderResourceView(), ImVec2(400, 400));
-	ImGui::DragFloat("SpecPower", &this->directionalLight.specPower, 1.0f, 1.0f, 100.0f);
+	ImGui::Begin("Normal");
+	ImGui::Image(gbuffer->GetShaderResourceViewNormal(), ImVec2(400, 400));
+	ImGui::End();
+
+	ImGui::Begin("Depth");
+	ImGui::Image(gbuffer->GetShaderResourceViewDepth(), ImVec2(400, 400));
+	ImGui::End();
+
+	ImGui::Begin("Ambient");
+	ImGui::Image(gbuffer->GetShaderResourceViewAmbient(), ImVec2(400, 400));
+	ImGui::End();
+
+	ImGui::Begin("Texture");
+	ImGui::Image(gbuffer->GetShaderResourceViewTexture(), ImVec2(400, 400));
 	ImGui::End();
 
 	ImGui::Render();
@@ -556,6 +575,37 @@ void Graphics::RenderToHDRTexture()
 	auto camPos = camera.GetPosition();
 	this->cb_vs_cam.data.camPos = Vector4(camPos.x, camPos.y, camPos.z, 1.0f);
 	this->cb_vs_cam.ApplyChanges();
+
+	this->mainPlane.Draw(this->cb_vs_mesh_transform);
+	this->mainObject.Draw(this->cb_vs_mesh_transform);
+	for (int i = 0; i < this->gameObjects.size(); i++)
+	{
+		this->gameObjects[i].Draw(this->cb_vs_mesh_transform);
+	}
+}
+
+void Graphics::RenderToGBuffer() 
+{
+	//Указываем что нужно рендерить в текстуру
+	gbuffer->SetRenderTarget(this->deviceContext.Get());
+	// Очищаем ее
+	gbuffer->ClearRenderTarget(this->deviceContext.Get(), 0.0f, 0.0f, 0.0f, 1.0f);
+
+	float bgcolor[] = { 0.0, 0.0f, 0.0f, 1.0f };
+	this->deviceContext->ClearDepthStencilView(this->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	this->deviceContext->IASetInputLayout(this->vertexshader.GetInputLayout());
+	this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	this->deviceContext->OMSetDepthStencilState(this->depthStencilState.Get(), 0);
+	this->deviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
+
+	this->deviceContext->PSSetShaderResources(1, 1, renderTarget->GetShaderResourceViewAddress());
+	this->deviceContext->PSSetSamplers(0, 1, this->wrapSamplerState.GetAddressOf());
+	this->deviceContext->PSSetSamplers(1, 1, this->clampSamplerState.GetAddressOf());
+
+
+	this->deviceContext->VSSetShader(vertexshader.GetShader(), NULL, 0);
+	this->deviceContext->PSSetShader(gBufferPixelshader.GetShader(), NULL, 0);
 
 	this->mainPlane.Draw(this->cb_vs_mesh_transform);
 	this->mainObject.Draw(this->cb_vs_mesh_transform);

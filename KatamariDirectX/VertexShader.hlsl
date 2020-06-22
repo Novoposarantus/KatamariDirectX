@@ -24,6 +24,7 @@ struct VS_INPUT
 struct VS_OUTPUT
 {
     float4 outPositionWVP : SV_POSITION;
+    float4 outPositionW : POSITION1;
     float3 outPosition : POSITION;
     float2 outTexCoord : TEXCOORD0;
     float3 outNormal : NORMAL;
@@ -43,9 +44,10 @@ VS_OUTPUT main(VS_INPUT input)
     float4x4 mwshWVPMatrix = mul(mul(meshTransformMatrix, worldMatrix), camVPMatrix);
     float4x4 meshWorldMatrix = mul(meshTransformMatrix, worldMatrix);
     float4x4 meshViewProjShadow = mul(mul(meshTransformMatrix, worldMatrix), camShadowVPMatrix);
-    
+    meshViewProjShadow = mul(worldMatrix, meshViewProjShadow);
 	
     output.outPositionWVP = mul(float4(input.inPos, 1.0f), mwshWVPMatrix);
+    output.outPositionW = mul(float4(input.inPos, 1.0f), worldMatrix);
     output.outPosition = input.inPos;
     output.outTexCoord = input.inTexCoord;
     output.outSpecColor = input.inSpecColor;

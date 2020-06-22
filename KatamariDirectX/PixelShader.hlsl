@@ -13,6 +13,7 @@ cbuffer lightBuffer : register(b0)
 struct PS_INPUT
 {
     float4 inPosWVP : SV_POSITION;
+    float4 inPositionW : POSITION1;
     float3 inPos : POSITION;
     float2 inTexCoord : TEXCOORD0;
     float3 inNormal : NORMAL;
